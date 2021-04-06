@@ -294,11 +294,23 @@ class Key(WorldObj):
         fill_coords(img, point_in_circle(cx=0.56, cy=0.28, r=0.064), (0,0,0))
 
 class Ball(WorldObj):
-    def __init__(self, color='blue'):
+    def __init__(self, color='blue', pos_fruit=False, neg_fruit=False):
         super(Ball, self).__init__('ball', color)
 
+        self.pos_fruit = pos_fruit
+        self.neg_fruit = neg_fruit
+
     def can_pickup(self):
-        return True
+        if self.pos_fruit or self.neg_fruit:
+            return False
+        else:
+            return True
+
+    def can_overlap(self):
+        if self.pos_fruit or self.neg_fruit:
+            return True
+        else:
+            return False
 
     def render(self, img):
         fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
@@ -374,6 +386,11 @@ class Grid:
         assert i >= 0 and i < self.width
         assert j >= 0 and j < self.height
         self.grid[j * self.width + i] = v
+
+    def unset(self, i, j):
+        assert i >= 0 and i < self.width
+        assert j >= 0 and j < self.height
+        self.grid[j * self.width + i] = None
 
     def get(self, i, j):
         assert i >= 0 and i < self.width
@@ -1122,6 +1139,14 @@ class MiniGridEnv(gym.Env):
         elif action == self.actions.forward:
             if fwd_cell == None or fwd_cell.can_overlap():
                 self.agent_pos = fwd_pos
+            if fwd_cell != None:
+                if fwd_cell.type == 'ball':
+                    if fwd_cell.pos_fruit == True:
+                        self.grid.unset(*fwd_pos)
+                        reward = self._reward()
+                    elif fwd_cell.neg_fruit == True:
+                        self.grid.unset(*fwd_pos)
+                        reward = -1*self._reward()
             if fwd_cell != None and fwd_cell.type == 'goal':
                 done = True
                 reward = self._reward()
