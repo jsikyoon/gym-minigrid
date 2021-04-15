@@ -52,6 +52,7 @@ class MemoryEnv(MiniGridEnv):
             self.grid.set(i, lower_room_wall, Wall())
         self.grid.set(4, upper_room_wall + 1, Wall())
         self.grid.set(4, lower_room_wall - 1, Wall())
+        self.grid.set(3, 4, Wall()) # additional
 
         # Horizontal hallway
         for i in range(5, hallway_end):
