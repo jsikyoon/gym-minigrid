@@ -21,7 +21,8 @@ class MemoryEnv(MiniGridEnv):
         super().__init__(
             seed=seed,
             grid_size=size,
-            max_steps=5*size**2,
+            max_steps=size*2,
+            #max_steps=5*size**2,
             # Set this to True for maximum speed
             see_through_walls=False,
         )
@@ -33,6 +34,8 @@ class MemoryEnv(MiniGridEnv):
         self.grid.horz_wall(0, 0)
         self.grid.horz_wall(0, height-1)
         self.grid.vert_wall(0, 0)
+        self.grid.vert_wall(1, 0) # additional
+        self.grid.vert_wall(2, 0)
         self.grid.vert_wall(width - 1, 0)
 
         assert height % 2 == 1
@@ -62,12 +65,14 @@ class MemoryEnv(MiniGridEnv):
             self.grid.set(hallway_end + 2, j, Wall())
 
         # Fix the player's start position and orientation
-        self.agent_pos = (self._rand_int(1, hallway_end + 1), height // 2)
+        #self.agent_pos = (self._rand_int(1, hallway_end + 1), height // 2)
+        self.agent_pos = (3, height // 2)
         self.agent_dir = 0
 
         # Place objects
         start_room_obj = self._rand_elem([Key, Ball])
-        self.grid.set(1, height // 2 - 1, start_room_obj('green'))
+        #self.grid.set(1, height // 2 - 1, start_room_obj('green'))
+        self.grid.set(3, height // 2 - 1, start_room_obj('green'))
 
         other_objs = self._rand_elem([[Ball, Key], [Key, Ball]])
         pos0 = (hallway_end + 1, height // 2 - 2)
@@ -91,10 +96,11 @@ class MemoryEnv(MiniGridEnv):
         obs, reward, done, info = MiniGridEnv.step(self, action)
 
         if tuple(self.agent_pos) == self.success_pos:
-            reward = self._reward()
+            #reward = self._reward()
+            reward = 1
             done = True
         if tuple(self.agent_pos) == self.failure_pos:
-            reward = 0
+            reward = -1
             done = True
 
         return obs, reward, done, info

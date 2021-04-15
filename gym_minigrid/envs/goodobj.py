@@ -10,7 +10,7 @@ class GoodObjectEnv(MiniGridEnv):
     def __init__(
         self,
         size=8,
-        numObjs=20,
+        numObjs=50,
         agent_start_pos=(1,1),
         agent_start_dir=0,
     ):

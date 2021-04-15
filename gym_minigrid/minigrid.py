@@ -1143,10 +1143,12 @@ class MiniGridEnv(gym.Env):
                 if fwd_cell.type == 'ball':
                     if fwd_cell.pos_fruit == True:
                         self.grid.unset(*fwd_pos)
-                        reward = self._reward()
+                        #reward = self._reward()
+                        reward = 1
                     elif fwd_cell.neg_fruit == True:
                         self.grid.unset(*fwd_pos)
-                        reward = -1*self._reward()
+                        #reward = -1*self._reward()
+                        reward = -1
             if fwd_cell != None and fwd_cell.type == 'goal':
                 done = True
                 reward = self._reward()
