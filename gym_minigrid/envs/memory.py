@@ -34,8 +34,8 @@ class MemoryEnv(MiniGridEnv):
         self.grid.horz_wall(0, 0)
         self.grid.horz_wall(0, height-1)
         self.grid.vert_wall(0, 0)
-        self.grid.vert_wall(1, 0) # additional
-        self.grid.vert_wall(2, 0)
+        #self.grid.vert_wall(1, 0) # additional
+        #self.grid.vert_wall(2, 0)
         self.grid.vert_wall(width - 1, 0)
 
         assert height % 2 == 1
@@ -52,7 +52,7 @@ class MemoryEnv(MiniGridEnv):
             self.grid.set(i, lower_room_wall, Wall())
         self.grid.set(4, upper_room_wall + 1, Wall())
         self.grid.set(4, lower_room_wall - 1, Wall())
-        self.grid.set(3, 4, Wall()) # additional
+        #self.grid.set(3, 4, Wall()) # additional
 
         # Horizontal hallway
         for i in range(5, hallway_end):
@@ -67,13 +67,14 @@ class MemoryEnv(MiniGridEnv):
 
         # Fix the player's start position and orientation
         #self.agent_pos = (self._rand_int(1, hallway_end + 1), height // 2)
-        self.agent_pos = (3, height // 2)
+        self.agent_pos = (1, height // 2)
+        #self.agent_pos = (3, height // 2)
         self.agent_dir = 0
 
         # Place objects
         start_room_obj = self._rand_elem([Key, Ball])
-        #self.grid.set(1, height // 2 - 1, start_room_obj('green'))
-        self.grid.set(3, height // 2 - 1, start_room_obj('green'))
+        self.grid.set(1, height // 2 - 1, start_room_obj('green'))
+        #self.grid.set(3, height // 2 - 1, start_room_obj('green'))
 
         other_objs = self._rand_elem([[Ball, Key], [Key, Ball]])
         pos0 = (hallway_end + 1, height // 2 - 2)
