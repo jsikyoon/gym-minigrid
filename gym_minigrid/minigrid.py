@@ -12,24 +12,30 @@ TILE_PIXELS = 32
 
 # Map of color names to RGB values
 COLORS = {
-    'red'   : np.array([255, 0, 0]),
-    'green' : np.array([0, 255, 0]),
-    'blue'  : np.array([0, 0, 255]),
-    'purple': np.array([112, 39, 195]),
-    'yellow': np.array([255, 255, 0]),
-    'grey'  : np.array([100, 100, 100])
+    'red'    : np.array([255, 0, 0]),
+    'green'  : np.array([0, 255, 0]),
+    'blue'   : np.array([0, 0, 255]),
+    'purple' : np.array([112, 39, 195]),
+    'yellow' : np.array([255, 255, 0]),
+    'grey'   : np.array([100, 100, 100]),
+    'magenta': np.array([255, 0, 255]),
+    'white'  : np.array([255, 255, 255]),
+    'orange' : np.array([255, 127, 0]),
 }
 
 COLOR_NAMES = sorted(list(COLORS.keys()))
 
 # Used to map colors to integers
 COLOR_TO_IDX = {
-    'red'   : 0,
-    'green' : 1,
-    'blue'  : 2,
-    'purple': 3,
-    'yellow': 4,
-    'grey'  : 5
+    'red'    : 0,
+    'green'  : 1,
+    'blue'   : 2,
+    'purple' : 3,
+    'yellow' : 4,
+    'grey'   : 5,
+    'magenta': 6,
+    'white'  : 7,
+    'orange' : 8,
 }
 
 IDX_TO_COLOR = dict(zip(COLOR_TO_IDX.values(), COLOR_TO_IDX.keys()))
@@ -47,6 +53,7 @@ OBJECT_TO_IDX = {
     'goal'          : 8,
     'lava'          : 9,
     'agent'         : 10,
+    'invisible'     : 11,
 }
 
 IDX_TO_OBJECT = dict(zip(OBJECT_TO_IDX.values(), OBJECT_TO_IDX.keys()))
@@ -132,6 +139,8 @@ class WorldObj:
             v = Floor(color)
         elif obj_type == 'ball':
             v = Ball(color)
+        elif obj_type == 'invisible':
+            v = Invisible(color)
         elif obj_type == 'key':
             v = Key(color)
         elif obj_type == 'box':
@@ -294,26 +303,41 @@ class Key(WorldObj):
         fill_coords(img, point_in_circle(cx=0.56, cy=0.28, r=0.064), (0,0,0))
 
 class Ball(WorldObj):
-    def __init__(self, color='blue', pos_fruit=False, neg_fruit=False):
+    def __init__(self, color='blue'):
         super(Ball, self).__init__('ball', color)
 
-        self.pos_fruit = pos_fruit
-        self.neg_fruit = neg_fruit
-
     def can_pickup(self):
-        if self.pos_fruit or self.neg_fruit:
-            return False
-        else:
-            return True
-
-    def can_overlap(self):
-        if self.pos_fruit or self.neg_fruit:
-            return True
-        else:
-            return False
+        return True
 
     def render(self, img):
         fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+
+class Invisible(WorldObj):
+    def __init__(self, reward):
+        super().__init__('invisible', 'green')
+        self.reward = reward
+
+    def can_pickup(self):
+        return True
+
+    def can_overlap(self):
+        return True
+
+    def render(self, img):
+        # invisible
+        pass
+
+class CollectableBall(Ball):
+    def __init__(self, color, reward):
+        super().__init__(color)
+        self.reward = reward
+
+    def can_pickup(self):
+        return True
+
+    def can_overlap(self):
+        return True
+
 
 class Box(WorldObj):
     def __init__(self, color, contains=None):
@@ -387,11 +411,6 @@ class Grid:
         assert j >= 0 and j < self.height
         self.grid[j * self.width + i] = v
 
-    def unset(self, i, j):
-        assert i >= 0 and i < self.width
-        assert j >= 0 and j < self.height
-        self.grid[j * self.width + i] = None
-
     def get(self, i, j):
         assert i >= 0 and i < self.width
         assert j >= 0 and j < self.height
@@ -458,7 +477,8 @@ class Grid:
         agent_dir=None,
         highlight=False,
         tile_size=TILE_PIXELS,
-        subdivs=3
+        subdivs=3,
+        agent_color=None,
     ):
         """
         Render a tile and cache the result
@@ -468,7 +488,8 @@ class Grid:
         key = (agent_dir, highlight, tile_size)
         key = obj.encode() + key if obj else key
 
-        if key in cls.tile_cache:
+        # don't cache agent
+        if key in cls.tile_cache and agent_dir is None:
             return cls.tile_cache[key]
 
         img = np.zeros(shape=(tile_size * subdivs, tile_size * subdivs, 3), dtype=np.uint8)
@@ -490,7 +511,9 @@ class Grid:
 
             # Rotate the agent based on its direction
             tri_fn = rotate_fn(tri_fn, cx=0.5, cy=0.5, theta=0.5*math.pi*agent_dir)
-            fill_coords(img, tri_fn, (255, 0, 0))
+            if agent_color is None:
+                agent_color = COLORS['red']
+            fill_coords(img, tri_fn, agent_color)
 
         # Highlight the cell if needed
         if highlight:
@@ -509,7 +532,8 @@ class Grid:
         tile_size,
         agent_pos=None,
         agent_dir=None,
-        highlight_mask=None
+        highlight_mask=None,
+        agent_color=None,
     ):
         """
         Render this grid at a given scale
@@ -536,7 +560,8 @@ class Grid:
                     cell,
                     agent_dir=agent_dir if agent_here else None,
                     highlight=highlight_mask[i, j],
-                    tile_size=tile_size
+                    tile_size=tile_size,
+                    agent_color=agent_color
                 )
 
                 ymin = j * tile_size
@@ -713,6 +738,7 @@ class MiniGridEnv(gym.Env):
         # Current position and direction of the agent
         self.agent_pos = None
         self.agent_dir = None
+        self.agent_color = None
 
         # Initialize the RNG
         self.seed(seed=seed)
@@ -724,6 +750,7 @@ class MiniGridEnv(gym.Env):
         # Current position and direction of the agent
         self.agent_pos = None
         self.agent_dir = None
+        self.agent_color = None
 
         # Generate a new random grid at the start of each episode
         # To keep the same grid for each episode, call env.seed() with
@@ -759,7 +786,7 @@ class MiniGridEnv(gym.Env):
         """
         sample_hash = hashlib.sha256()
 
-        to_encode = [self.grid.encode(), self.agent_pos, self.agent_dir]
+        to_encode = [self.grid.encode().tolist(), self.agent_pos, self.agent_dir]
         for item in to_encode:
             sample_hash.update(str(item).encode('utf8'))
 
@@ -1139,16 +1166,6 @@ class MiniGridEnv(gym.Env):
         elif action == self.actions.forward:
             if fwd_cell == None or fwd_cell.can_overlap():
                 self.agent_pos = fwd_pos
-            if fwd_cell != None:
-                if fwd_cell.type == 'ball':
-                    if fwd_cell.pos_fruit == True:
-                        self.grid.unset(*fwd_pos)
-                        #reward = self._reward()
-                        reward = 1
-                    elif fwd_cell.neg_fruit == True:
-                        self.grid.unset(*fwd_pos)
-                        #reward = -1*self._reward()
-                        reward = -1
             if fwd_cell != None and fwd_cell.type == 'goal':
                 done = True
                 reward = self._reward()
@@ -1257,6 +1274,7 @@ class MiniGridEnv(gym.Env):
             tile_size,
             agent_pos=(self.agent_view_size // 2, self.agent_view_size - 1),
             agent_dir=3,
+            agent_color=self.agent_color,
             highlight_mask=vis_mask
         )
 
@@ -1312,7 +1330,8 @@ class MiniGridEnv(gym.Env):
             tile_size,
             self.agent_pos,
             self.agent_dir,
-            highlight_mask=highlight_mask if highlight else None
+            highlight_mask=highlight_mask if highlight else None,
+            agent_color=self.agent_color,
         )
 
         if mode == 'human':
@@ -1325,3 +1344,4 @@ class MiniGridEnv(gym.Env):
         if self.window:
             self.window.close()
         return
+

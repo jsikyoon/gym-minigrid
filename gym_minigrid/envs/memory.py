@@ -16,13 +16,14 @@ class MemoryEnv(MiniGridEnv):
         seed,
         size=8,
         random_length=False,
+        fixed_start=False,
     ):
         self.random_length = random_length
+        self.fixed_start = fixed_start
         super().__init__(
             seed=seed,
             grid_size=size,
-            max_steps=size*2,
-            #max_steps=5*size**2,
+            max_steps=5*size**2,
             # Set this to True for maximum speed
             see_through_walls=False,
         )
@@ -34,8 +35,6 @@ class MemoryEnv(MiniGridEnv):
         self.grid.horz_wall(0, 0)
         self.grid.horz_wall(0, height-1)
         self.grid.vert_wall(0, 0)
-        #self.grid.vert_wall(1, 0) # additional
-        #self.grid.vert_wall(2, 0)
         self.grid.vert_wall(width - 1, 0)
 
         assert height % 2 == 1
@@ -52,7 +51,6 @@ class MemoryEnv(MiniGridEnv):
             self.grid.set(i, lower_room_wall, Wall())
         self.grid.set(4, upper_room_wall + 1, Wall())
         self.grid.set(4, lower_room_wall - 1, Wall())
-        #self.grid.set(3, 4, Wall()) # additional
 
         # Horizontal hallway
         for i in range(5, hallway_end):
@@ -66,15 +64,15 @@ class MemoryEnv(MiniGridEnv):
             self.grid.set(hallway_end + 2, j, Wall())
 
         # Fix the player's start position and orientation
-        #self.agent_pos = (self._rand_int(1, hallway_end + 1), height // 2)
-        self.agent_pos = (1, height // 2)
-        #self.agent_pos = (3, height // 2)
+        if self.fixed_start:
+            self.agent_pos = (1, height // 2)
+        else:
+            self.agent_pos = (self._rand_int(1, hallway_end + 1), height // 2)
         self.agent_dir = 0
 
         # Place objects
         start_room_obj = self._rand_elem([Key, Ball])
         self.grid.set(1, height // 2 - 1, start_room_obj('green'))
-        #self.grid.set(3, height // 2 - 1, start_room_obj('green'))
 
         other_objs = self._rand_elem([[Ball, Key], [Key, Ball]])
         pos0 = (hallway_end + 1, height // 2 - 2)
@@ -98,11 +96,10 @@ class MemoryEnv(MiniGridEnv):
         obs, reward, done, info = MiniGridEnv.step(self, action)
 
         if tuple(self.agent_pos) == self.success_pos:
-            #reward = self._reward()
-            reward = 1
+            reward = self._reward()
             done = True
         if tuple(self.agent_pos) == self.failure_pos:
-            reward = -1
+            reward = 0
             done = True
 
         return obs, reward, done, info
@@ -160,3 +157,13 @@ register(
     id='MiniGrid-MemoryS7-v0',
     entry_point='gym_minigrid.envs:MemoryS7',
 )
+
+class MemoryS7FixedStart(MemoryEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=7, fixed_start=True)
+
+register(
+    id='MiniGrid-MemoryS7FixedStart-v0',
+    entry_point='gym_minigrid.envs:MemoryS7FixedStart',
+)
+
