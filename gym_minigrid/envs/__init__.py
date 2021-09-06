@@ -22,3 +22,4 @@ from gym_minigrid.envs.distshift import *
 from gym_minigrid.envs.goodobj import *
 from gym_minigrid.envs.watermaze import *
 from gym_minigrid.envs.targetedobj import *
+from gym_minigrid.envs.objreward import *
