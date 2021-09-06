@@ -152,59 +152,6 @@ class OneHotPartialObsWrapper(gym.core.ObservationWrapper):
             'image': out
         }
 
-class RGBImgOverviewPartialObsWrapper(gym.core.ObservationWrapper):
-    """
-    Wrapper to use fully observable RGB image as the only observation output,
-    no language/mission. This can be used to have the agent to solve the
-    gridworld in pixel space.
-    """
-
-    def __init__(self, env, tile_size=8):
-        super().__init__(env)
-
-        self.tile_size = tile_size
-
-        obs_shape = env.observation_space.spaces['image'].shape
-        self.observation_space.spaces['image'] = spaces.Box(
-            low=0,
-            high=255,
-            shape=(obs_shape[0] * tile_size, obs_shape[1] * tile_size, 3),
-            dtype='uint8'
-        )
-
-    def observation(self, obs):
-        env = self.unwrapped
-
-        tile_size = self.tile_size
-
-        self.observation_space.spaces['image'] = spaces.Box(
-            low=0,
-            high=255,
-            shape=(self.env.width * tile_size, self.env.height * tile_size, 3),
-            dtype='uint8'
-        )
-        rgb_img = env.render(
-            mode='rgb_array',
-            highlight=False,
-            tile_size=self.tile_size
-        )
-
-        obs_shape = env.observation_space.spaces['image'].shape
-        self.observation_space.spaces['image'] = spaces.Box(
-            low=0,
-            high=255,
-            shape=(obs_shape[0] * tile_size, obs_shape[1] * tile_size, 3),
-            dtype='uint8'
-        )
-        rgb_img_partial = env.get_obs_render(
-            obs['image'],
-            tile_size=self.tile_size
-        )
-
-        return {
-            'mission': obs['mission'],
-            'image': (rgb_img, rgb_img_partial),
-        }
 
 class RGBImgObsWrapper(gym.core.ObservationWrapper):
     """
