@@ -80,7 +80,7 @@ class GoodObjectEnv(MiniGridEnv):
         if reward > 0:
             self.pos_cnt += 1
 
-        if self.pos_cnt == self.numObjs/2:
+        if self.pos_cnt == int(self.numObjs/2):
             done = True
 
         return obs, reward, done, info
