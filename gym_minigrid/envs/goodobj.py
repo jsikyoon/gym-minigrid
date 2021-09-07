@@ -48,7 +48,7 @@ class GoodObjectEnv(MiniGridEnv):
 
 
         # For good objects
-        while len(objs) < self.numObjs/2:
+        while len(objs) < int(self.numObjs/2):
             obj = CollectableBall('green', 1)
             self.place_obj(obj)
             objs.append(obj)
