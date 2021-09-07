@@ -64,8 +64,6 @@ class ObjectRewardEnv(MiniGridEnv):
         random.shuffle(self._colormap)
         self._pos_colormap = self._colormap[:len(self._colormap)//2]
         self._neg_colormap = self._colormap[len(self._colormap)//2:]
-        print('pos',self._pos_colormap)
-        print('neg',self._neg_colormap)
 
         # For good objects
         while len(objs) < self.numObjs/2:
