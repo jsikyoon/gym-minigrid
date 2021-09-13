@@ -94,8 +94,14 @@ class OrderMemoryEnv(MiniGridEnv):
         self.agent_dir = self.agent_start_dir
 
         # Place objects
+        random.shuffle(self.ball_colors)
         for _pos, color in zip(self.poses, self.ball_colors):
             self.grid.set(*_pos, CollectableBall(color, 0))
+
+        # Make hidden order
+        self.hidden_order_pos = []
+        for color in self.hidden_order_color:
+            self.hidden_order_pos.append(self.poses[self.ball_colors.index(color)])
 
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
