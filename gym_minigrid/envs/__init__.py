@@ -24,3 +24,4 @@ from gym_minigrid.envs.watermaze import *
 from gym_minigrid.envs.targetedobj import *
 from gym_minigrid.envs.objreward import *
 from gym_minigrid.envs.ordermemory import *
+from gym_minigrid.envs.ordermemorylarge import *
