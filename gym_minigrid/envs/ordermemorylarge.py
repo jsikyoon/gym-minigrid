@@ -28,7 +28,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         num_areas = ((size-2) // area_size)**2
         assert num_areas > num_objs
 
-        max_steps = 200
+        max_steps = 100 * area_size
         self.num_areas = num_areas
         self.area_size = area_size
         self.num_objs = num_objs
