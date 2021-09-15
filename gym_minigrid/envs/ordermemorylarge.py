@@ -28,24 +28,21 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         num_areas = ((size-2) // area_size)**2
         assert num_areas > num_objs
 
-        max_steps = 100
+        max_steps = 200
         self.num_areas = num_areas
         self.area_size = area_size
         self.num_objs = num_objs
         self.size = size
-        self.max_steps = 100
+        self.max_steps = max_steps
         self.ball_colors = COLOR_NAMES[:num_objs]
         # start in center
         self.agent_area = num_areas // 2
-        self.ball_areas = [x for x in range(num_areas) if x != self.agent_area]
+        ball_areas = [x for x in range(num_areas) if x != self.agent_area]
+        self.ball_areas = []
+        for i in range(num_objs):
+            self.ball_areas.append(ball_areas[i*((num_areas-1)//num_objs)])
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
-
-        poses = self._get_poses()
-        random.shuffle(poses)
-        self.poses = poses[:num_objs]
-        self.agent_start_pos = self._get_agent_pos()
-        self.agent_start_dir = 3
 
         super().__init__(
             grid_size=size,
@@ -89,10 +86,11 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.grid.wall_rect(0, 0, width, height)
 
         # Place the agent
-        self.agent_pos = self.agent_start_pos
-        self.agent_dir = self.agent_start_dir
+        self.agent_pos = self.agent_start_pos = self._get_agent_pos()
+        self.agent_dir = self.agent_start_dir = 3
 
         # Place objects
+        self.poses = self._get_poses()
         random.shuffle(self.ball_colors)
         for _pos, color in zip(self.poses, self.ball_colors):
             self.grid.set(*_pos, CollectableBall(color, 0))
@@ -119,10 +117,15 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.grid.wall_rect(0, 0, self.size, self.size)
 
         # Place the agent
-        self.agent_pos = self.agent_start_pos
-        self.agent_dir = self.agent_start_dir
+        if self.reset_positions:
+            self.agent_pos = self._get_agent_pos()
+            self.agent_dir = 3
+        else:
+            self.agent_pos = self.agent_start_pos
+            self.agent_dir = self.agent_start_dir
 
         if self.reset_positions:
+            self.poses = self._get_poses()
             random.shuffle(self.ball_colors)
 
         # Place objects
@@ -162,23 +165,44 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         return obs, reward, done, info
 
 
-class OrderMemoryLarge6x6EnvWithPenalty(OrderMemoryLargeEnv):
+class OrderMemoryLarge6x6N3EnvWithPenalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, step_penalty=0.05, agent_view_size=3, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
 
-class OrderMemoryLarge6x6EnvWithPenaltyReset(OrderMemoryLargeEnv):
+class OrderMemoryLarge9x9N3EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=11 because walls take up one so map will be 11x11
+        super().__init__(size=11, area_size=3, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvWithPenalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, step_penalty=0.05, agent_view_size=3, reset_positions=True, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge9x9N4EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=11 because walls take up one so map will be 11x11
+        super().__init__(size=11, area_size=3, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
 
 
 register(
-    id='MiniGrid-OrderMemoryLarge-6x6-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6EnvWithPenalty'
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvWithPenalty'
 )
 
 register(
-    id='MiniGrid-OrderMemoryLarge-6x6-Penalty-Reset-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6EnvWithPenaltyReset'
+    id='MiniGrid-OrderMemoryLarge-N3-9x9-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N3EnvWithPenalty'
 )
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-9x9-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N4EnvWithPenalty'
+)
+
