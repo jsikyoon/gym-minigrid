@@ -165,64 +165,59 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         return obs, reward, done, info
 
 
-class OrderMemoryLarge6x6N3EnvWithPenalty(OrderMemoryLargeEnv):
+class OrderMemoryLargeS6N3(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS6N3-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3'
+)
+class OrderMemoryLargeS6N3Penalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
         super().__init__(size=8, area_size=2, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS6N3Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3Penalty'
+)
 
-class OrderMemoryLarge9x9N3EnvWithPenalty(OrderMemoryLargeEnv):
+
+class OrderMemoryLargeS6N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 11x11
-        super().__init__(size=11, area_size=3, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
-
-class OrderMemoryLarge6x6N4EnvWithPenalty(OrderMemoryLargeEnv):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS6N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4'
+)
+class OrderMemoryLargeS6N4Penalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
         super().__init__(size=8, area_size=2, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS6N4Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4Penalty'
+)
 
-class OrderMemoryLarge9x9N4EnvWithPenalty(OrderMemoryLargeEnv):
+
+class OrderMemoryLargeS6N5(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 11x11
-        super().__init__(size=11, area_size=3, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
-
-class OrderMemoryLarge6x6N5EnvWithPenalty(OrderMemoryLargeEnv):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS6N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5'
+)
+class OrderMemoryLargeS6N5Penalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
         super().__init__(size=8, area_size=2, num_objs=5, step_penalty=0.05, agent_view_size=3, **kwargs)
-
-class OrderMemoryLarge9x9N5EnvWithPenalty(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 11x11
-        super().__init__(size=11, area_size=3, num_objs=5, step_penalty=0.05, agent_view_size=3, **kwargs)
-
-
 register(
-    id='MiniGrid-OrderMemoryLarge-N3-6x6-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvWithPenalty'
+    id='MiniGrid-OrderMemoryLargeS6N5Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5Penalty'
 )
 
-register(
-    id='MiniGrid-OrderMemoryLarge-N3-9x9-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N3EnvWithPenalty'
-)
 
-register(
-    id='MiniGrid-OrderMemoryLarge-N4-6x6-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvWithPenalty'
-)
 
-register(
-    id='MiniGrid-OrderMemoryLarge-N4-9x9-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N4EnvWithPenalty'
-)
-
-register(
-    id='MiniGrid-OrderMemoryLarge-N5-6x6-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N5EnvWithPenalty'
-)
-
-register(
-    id='MiniGrid-OrderMemoryLarge-N5-9x9-Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N5EnvWithPenalty'
-)
 
