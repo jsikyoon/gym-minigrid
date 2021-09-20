@@ -22,6 +22,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         step_penalty=0.0,
         agent_view_size=3,
         reset_positions=False,
+        agent_bottom_start=False,
     ):
         assert (size-2) % area_size == 0
 
@@ -35,14 +36,20 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.size = size
         self.max_steps = max_steps
         self.ball_colors = COLOR_NAMES[:num_objs]
-        # start in center
-        self.agent_area = num_areas // 2
+        if agent_bottom_start:
+            # start at the bottom center
+            self.agent_area = num_areas - (((size-2) // area_size) // 2) - 1
+        else:
+            # start in center
+            self.agent_area = num_areas // 2
         ball_areas = [x for x in range(num_areas) if x != self.agent_area]
+        random.shuffle(ball_areas)
         self.ball_areas = []
         for i in range(num_objs):
             self.ball_areas.append(ball_areas[i*((num_areas-1)//num_objs)])
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
+        self.agent_bottom_start = agent_bottom_start
 
         super().__init__(
             grid_size=size,
@@ -65,10 +72,13 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         return coords
 
     def _get_agent_pos(self):
-        area = self.agent_area
-        coords = self._get_coords_for_area(self.agent_area)
-        agent_pos = random.choice(coords)
-        return agent_pos
+        if self.agent_bottom_start:
+            return ((self.size-2) // 2, (self.size-2))
+        else:
+            area = self.agent_area
+            coords = self._get_coords_for_area(self.agent_area)
+            agent_pos = random.choice(coords)
+            return agent_pos
 
     def _get_poses(self):
         poses = []
@@ -164,60 +174,187 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         return obs, reward, done, info
 
-
-class OrderMemoryLargeS6N3(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N3-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3'
-)
-class OrderMemoryLargeS6N3Penalty(OrderMemoryLargeEnv):
+class OrderMemoryLarge6x6N3EnvWithPenalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
         super().__init__(size=8, area_size=2, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N3Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3Penalty'
-)
 
-
-class OrderMemoryLargeS6N4(OrderMemoryLargeEnv):
+class OrderMemoryLarge6x6N3EnvWithPenaltyReset(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N4-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4'
-)
-class OrderMemoryLargeS6N4Penalty(OrderMemoryLargeEnv):
+        super().__init__(size=8, area_size=2, num_objs=3, step_penalty=0.05, agent_view_size=3, reset_positions=True, **kwargs)
+
+class OrderMemoryLarge6x6N3EnvReset(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, reset_positions=True, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvReset(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, reset_positions=True, **kwargs)
+
+class OrderMemoryLarge6x6N5EnvReset(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=3, reset_positions=True, **kwargs)
+
+class OrderMemoryLarge6x6N3EnvFixed(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=7, agent_bottom_start=True, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvFixed(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=7, agent_bottom_start=True,  **kwargs)
+
+class OrderMemoryLarge6x6N5EnvFixed(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=7, agent_bottom_start=True, **kwargs)
+
+class OrderMemoryLarge6x6N3EnvResetFixed(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=7, reset_positions=True, agent_bottom_start=True, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvResetFixed(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=7, reset_positions=True, agent_bottom_start=True,  **kwargs)
+
+class OrderMemoryLarge6x6N5EnvResetFixed(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=7, reset_positions=True, agent_bottom_start=True, **kwargs)
+
+class OrderMemoryLarge9x9N3EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=11 because walls take up one so map will be 11x11
+        super().__init__(size=11, area_size=3, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvWithPenalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
         super().__init__(size=8, area_size=2, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N4Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4Penalty'
-)
 
-
-class OrderMemoryLargeS6N5(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N5-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5'
-)
-class OrderMemoryLargeS6N5Penalty(OrderMemoryLargeEnv):
+class OrderMemoryLarge6x6N5EnvWithPenalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
         super().__init__(size=8, area_size=2, num_objs=5, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge6x6N6EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=6, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge6x6N7EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=7, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge6x6N8EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=8, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+class OrderMemoryLarge9x9N4EnvWithPenalty(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=11 because walls take up one so map will be 11x11
+        super().__init__(size=11, area_size=3, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
+
+
+
+
 register(
-    id='MiniGrid-OrderMemoryLargeS6N5Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5Penalty'
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Penalty-Reset-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvWithPenaltyReset'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Reset-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvReset'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Reset-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvReset'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N5-6x6-Reset-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N5EnvReset'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Fixed-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvFixed'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Fixed-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvFixed'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N5-6x6-Fixed-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N5EnvFixed'
 )
 
 
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Reset-Fixed-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvResetFixed'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Reset-Fixed-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvResetFixed'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N5-6x6-Reset-Fixed-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N5EnvResetFixed'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N5-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N5EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N6-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N6EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N7-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N7EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N8-6x6-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N8EnvWithPenalty'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-9x9-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N3EnvWithPenalty'
+)
 
 
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-9x9-Penalty-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge9x9N4EnvWithPenalty'
+)
