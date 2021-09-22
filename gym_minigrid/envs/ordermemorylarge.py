@@ -163,12 +163,14 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             else:
                 self.next_visit = 0
                 self._reset_grid()
+                obs = self.gen_obs()
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
             self.next_visit = 0
             self.reward_set = [1] * len(self.ball_colors)
             self._reset_grid()
+            obs = self.gen_obs()
 
         reward -= self.step_penalty
 
