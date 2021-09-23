@@ -153,6 +153,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             else:
                 self.next_visit = 0
                 self._reset_grid()
+                obs = self.gen_obs()
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
@@ -173,13 +174,14 @@ register(
     id='MiniGrid-OrderMemoryLargeS6N3-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3'
 )
-class OrderMemoryLargeS6N3Penalty(OrderMemoryLargeEnv):
+
+class OrderMemoryLargeS9N3(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=3, step_penalty=0.05, agent_view_size=3, **kwargs)
+        # size=11 because walls take up one so map will be 6x6
+        super().__init__(size=11, area_size=3, num_objs=3, agent_view_size=3, **kwargs)
 register(
-    id='MiniGrid-OrderMemoryLargeS6N3Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3Penalty'
+    id='MiniGrid-OrderMemoryLargeS9N3-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS9N3'
 )
 
 
@@ -191,13 +193,14 @@ register(
     id='MiniGrid-OrderMemoryLargeS6N4-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4'
 )
-class OrderMemoryLargeS6N4Penalty(OrderMemoryLargeEnv):
+
+class OrderMemoryLargeS9N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
+        # size=11 because walls take up one so map will be 6x6
+        super().__init__(size=11, area_size=3, num_objs=4, agent_view_size=3, **kwargs)
 register(
-    id='MiniGrid-OrderMemoryLargeS6N4Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4Penalty'
+    id='MiniGrid-OrderMemoryLargeS9N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS9N4'
 )
 
 
@@ -209,15 +212,14 @@ register(
     id='MiniGrid-OrderMemoryLargeS6N5-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5'
 )
-class OrderMemoryLargeS6N5Penalty(OrderMemoryLargeEnv):
+
+class OrderMemoryLargeS9N5(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=5, step_penalty=0.05, agent_view_size=3, **kwargs)
+        # size=11 because walls take up one so map will be 6x6
+        super().__init__(size=11, area_size=3, num_objs=5, agent_view_size=3, **kwargs)
 register(
-    id='MiniGrid-OrderMemoryLargeS6N5Penalty-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5Penalty'
+    id='MiniGrid-OrderMemoryLargeS9N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS9N5'
 )
-
-
 
 
