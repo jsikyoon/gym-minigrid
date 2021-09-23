@@ -23,6 +23,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         agent_view_size=3,
         reset_positions=False,
         agent_bottom_start=False,
+        complete_bonus=0.0,
     ):
         assert (size-2) % area_size == 0
 
@@ -50,6 +51,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
         self.agent_bottom_start = agent_bottom_start
+        self.complete_bonus = complete_bonus
 
         super().__init__(
             grid_size=size,
@@ -167,6 +169,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
+            reward += self.complete_bonus
             self.next_visit = 0
             self.reward_set = [1] * len(self.ball_colors)
             self._reset_grid()
@@ -175,6 +178,26 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         reward -= self.step_penalty
 
         return obs, reward, done, info
+
+class OrderMemoryLarge6x6N3EnvResetCompleteBonus(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, reset_positions=True, complete_bonus=3.0, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvResetCompleteBonus(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, reset_positions=True, complete_bonus=3.0, **kwargs)
+
+class OrderMemoryLarge6x6N3EnvFixedCompleteBonus(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=7, agent_bottom_start=True, complete_bonus=3.0, **kwargs)
+
+class OrderMemoryLarge6x6N4EnvFixedCompleteBonus(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 6x6
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=7, agent_bottom_start=True, complete_bonus=3.0, **kwargs)
 
 class OrderMemoryLarge6x6N3EnvWithPenalty(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
@@ -267,7 +290,24 @@ class OrderMemoryLarge9x9N4EnvWithPenalty(OrderMemoryLargeEnv):
         super().__init__(size=11, area_size=3, num_objs=4, step_penalty=0.05, agent_view_size=3, **kwargs)
 
 
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Reset-CompleteBonus-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvResetCompleteBonus'
+)
 
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Reset-CompleteBonus-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvResetCompleteBonus'
+)
+register(
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-Fixed-CompleteBonus-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvFixedCompleteBonus'
+)
+
+register(
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-Fixed-CompleteBonus-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvFixedCompleteBonus'
+)
 
 register(
     id='MiniGrid-OrderMemoryLarge-N3-6x6-Penalty-v0',
