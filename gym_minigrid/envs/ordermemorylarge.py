@@ -179,15 +179,15 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         return obs, reward, done, info
 
-class OrderMemoryLarge6x6N3EnvResetCompleteBonus(OrderMemoryLargeEnv):
+class OrderMemoryLarge6x6N3EnvResetFixedCompleteBonus(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, reset_positions=True, complete_bonus=3.0, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, agent_bottom_start=True, reset_positions=True, complete_bonus=3.0, **kwargs)
 
-class OrderMemoryLarge6x6N4EnvResetCompleteBonus(OrderMemoryLargeEnv):
+class OrderMemoryLarge6x6N4EnvResetFixedCompleteBonus(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, reset_positions=True, complete_bonus=3.0, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, agent_bottom_start=True, reset_positions=True, complete_bonus=3.0, **kwargs)
 
 class OrderMemoryLarge6x6N3EnvFixedCompleteBonus(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
@@ -291,13 +291,13 @@ class OrderMemoryLarge9x9N4EnvWithPenalty(OrderMemoryLargeEnv):
 
 
 register(
-    id='MiniGrid-OrderMemoryLarge-N3-6x6-Reset-CompleteBonus-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvResetCompleteBonus'
+    id='MiniGrid-OrderMemoryLarge-N3-6x6-ResetFixed-CompleteBonus-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N3EnvResetFixedCompleteBonus'
 )
 
 register(
-    id='MiniGrid-OrderMemoryLarge-N4-6x6-Reset-CompleteBonus-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvResetCompleteBonus'
+    id='MiniGrid-OrderMemoryLarge-N4-6x6-ResetFixed-CompleteBonus-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLarge6x6N4EnvResetFixedCompleteBonus'
 )
 register(
     id='MiniGrid-OrderMemoryLarge-N3-6x6-Fixed-CompleteBonus-v0',
