@@ -20,7 +20,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         num_objs=3,
         area_size=2,
         step_penalty=0.0,
-        agent_view_size=3,
+        agent_view_size=7,
         reset_positions=False,
     ):
         assert (size-2) % area_size == 0
@@ -28,7 +28,8 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         num_areas = ((size-2) // area_size)**2
         assert num_areas > num_objs
 
-        max_steps = 100 * area_size
+        #max_steps = 100 * area_size
+        max_steps = 10 * size * num_objs**2
         self.num_areas = num_areas
         self.area_size = area_size
         self.num_objs = num_objs
@@ -169,7 +170,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 class OrderMemoryLargeS6N3(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=3, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=7, **kwargs)
 register(
     id='MiniGrid-OrderMemoryLargeS6N3-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3'
@@ -178,17 +179,35 @@ register(
 class OrderMemoryLargeS9N3(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=11, area_size=3, num_objs=3, agent_view_size=3, **kwargs)
+        super().__init__(size=11, area_size=3, num_objs=3, agent_view_size=7, **kwargs)
 register(
     id='MiniGrid-OrderMemoryLargeS9N3-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS9N3'
+)
+
+class OrderMemoryLargeS12N3(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=11 because walls take up one so map will be 6x6
+        super().__init__(size=14, area_size=4, num_objs=3, agent_view_size=7, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS12N3-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS12N3'
+)
+
+class OrderMemoryLargeS15N3(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=11 because walls take up one so map will be 6x6
+        super().__init__(size=17, area_size=5, num_objs=3, agent_view_size=7, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS15N3-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS15N3'
 )
 
 
 class OrderMemoryLargeS6N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=3, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=7, **kwargs)
 register(
     id='MiniGrid-OrderMemoryLargeS6N4-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4'
@@ -197,7 +216,7 @@ register(
 class OrderMemoryLargeS9N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=11, area_size=3, num_objs=4, agent_view_size=3, **kwargs)
+        super().__init__(size=11, area_size=3, num_objs=4, agent_view_size=7, **kwargs)
 register(
     id='MiniGrid-OrderMemoryLargeS9N4-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS9N4'
@@ -207,7 +226,7 @@ register(
 class OrderMemoryLargeS6N5(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=3, **kwargs)
+        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=7, **kwargs)
 register(
     id='MiniGrid-OrderMemoryLargeS6N5-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5'
@@ -216,7 +235,7 @@ register(
 class OrderMemoryLargeS9N5(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=11, area_size=3, num_objs=5, agent_view_size=3, **kwargs)
+        super().__init__(size=11, area_size=3, num_objs=5, agent_view_size=7, **kwargs)
 register(
     id='MiniGrid-OrderMemoryLargeS9N5-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS9N5'
