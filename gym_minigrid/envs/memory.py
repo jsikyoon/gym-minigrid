@@ -46,14 +46,16 @@ class MemoryEnv(MiniGridEnv):
             hallway_end = width - 3
 
         # Start room
-        for i in range(1, 5):
+        #for i in range(1, 5):
+        for i in range(1, 3):
             self.grid.set(i, upper_room_wall, Wall())
             self.grid.set(i, lower_room_wall, Wall())
-        self.grid.set(4, upper_room_wall + 1, Wall())
-        self.grid.set(4, lower_room_wall - 1, Wall())
+        self.grid.set(2, upper_room_wall + 1, Wall())
+        self.grid.set(2, lower_room_wall - 1, Wall())
 
         # Horizontal hallway
-        for i in range(5, hallway_end):
+        #for i in range(5, hallway_end):
+        for i in range(3, hallway_end):
             self.grid.set(i, upper_room_wall + 1, Wall())
             self.grid.set(i, lower_room_wall - 1, Wall())
 
@@ -65,18 +67,20 @@ class MemoryEnv(MiniGridEnv):
 
         # Fix the player's start position and orientation
         if self.fixed_start:
-            self.agent_pos = (1, height // 2)
+            self.agent_pos = (1, height // 2 + 1)
         else:
             self.agent_pos = (self._rand_int(1, hallway_end + 1), height // 2)
-        self.agent_dir = 0
+        self.agent_dir = 3
 
         # Place objects
         start_room_obj = self._rand_elem([Key, Ball])
         self.grid.set(1, height // 2 - 1, start_room_obj('green'))
 
         other_objs = self._rand_elem([[Ball, Key], [Key, Ball]])
-        pos0 = (hallway_end + 1, height // 2 - 2)
-        pos1 = (hallway_end + 1, height // 2 + 2)
+        #pos0 = (hallway_end + 1, height // 2 - 2)
+        pos0 = (hallway_end + 1, height // 2 - 4)
+        #pos1 = (hallway_end + 1, height // 2 + 2)
+        pos1 = (hallway_end + 1, height // 2 + 4)
         self.grid.set(*pos0, other_objs[0]('green'))
         self.grid.set(*pos1, other_objs[1]('green'))
 
@@ -130,6 +134,16 @@ register(
     id='MiniGrid-MemoryS13-v0',
     entry_point='gym_minigrid.envs:MemoryS13',
 )
+
+class MemoryS13FixedStart(MemoryEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=13, fixed_start=True)
+
+register(
+    id='MiniGrid-MemoryS13FixedStart-v0',
+    entry_point='gym_minigrid.envs:MemoryS13FixedStart',
+)
+
 
 class MemoryS11(MemoryEnv):
     def __init__(self, seed=None):
