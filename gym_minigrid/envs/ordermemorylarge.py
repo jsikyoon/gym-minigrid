@@ -170,7 +170,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         self.mission = "collect objects in hidden order as many as possible"
 
-    def _reset_grid(self):
+    def _reset_grid(self, reset_key=False):
         # Create an empty grid
         self.grid = Grid(self.size, self.size)
 
@@ -194,10 +194,11 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             self.grid.set(*_pos, CollectableBall(color, 0))
 
         # Place keys
-        self.key_poses = self._get_key_poses()
-        random.shuffle(self.key_colors)
-        for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
-            self.grid.set(*_pos, Key(color))
+        if reset_key:
+          self.key_poses = self._get_key_poses()
+          random.shuffle(self.key_colors)
+          for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
+              self.grid.set(*_pos, Key(color))
 
         # Make hidden order
         self.hidden_order_pos = []
@@ -243,7 +244,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         if self.next_visit >= len(self.ball_colors):
             self.next_visit = 0
             self.reward_set = [1] * len(self.ball_colors)
-            self._reset_grid()
+            self._reset_grid(reset_key=True)
             reward = 3.
 
         obs = self.gen_obs()
