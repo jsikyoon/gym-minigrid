@@ -197,8 +197,8 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         if reset_key:
           self.key_poses = self._get_key_poses()
           random.shuffle(self.key_colors)
-          for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
-              self.grid.set(*_pos, Key(color))
+        for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
+            self.grid.set(*_pos, Key(color))
 
         # Make hidden order
         self.hidden_order_pos = []
