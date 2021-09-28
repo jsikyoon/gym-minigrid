@@ -340,6 +340,24 @@ register(
 )
 
 
+class OrderMemoryLargeS11N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 11x11
+        super().__init__(size=13, area_size=1, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS11N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS11N4'
+)
+
+class OrderMemoryLargeS13N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 13x13
+        super().__init__(size=15, area_size=1, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS13N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS13N4'
+)
+
 class OrderMemoryLargeS10N5(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 10x10
