@@ -22,6 +22,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         area_size=2,
         step_penalty=0.0,
         agent_view_size=3,
+        num_key=2,
         reset_positions=False,
         agent_init_bottom=False,
         max_steps=None,
@@ -55,6 +56,9 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
         self.dist_thr = dist_thr
+        self.key_colors = COLOR_NAMES[num_objs:]
+        self.poses = None
+        self.num_key = num_key
 
         super().__init__(
             grid_size=size,
@@ -106,6 +110,29 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         return coords
 
+    def _get_key_poses(self):
+        assert self.poses is not None
+
+        total_coords = []
+        for ball_area in self.ball_areas:
+            total_coords = total_coords + self._get_coords_for_area(ball_area)
+        random.shuffle(total_coords)
+        coords = total_coords[:self.num_key]
+        good_pos = True
+        for coor in coords:
+          if coor in self.poses:
+            good_pos = False
+
+        while not good_pos:
+          random.shuffle(total_coords)
+          coords = total_coords[:self.num_key]
+          good_pos = True
+          for coor in coords:
+            if coor in self.poses:
+              good_pos = False
+
+        return coords
+
     def _gen_grid(self, width, height):
         # Create an empty grid
         self.grid = Grid(width, height)
@@ -122,6 +149,12 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         random.shuffle(self.ball_colors)
         for _pos, color in zip(self.poses, self.ball_colors):
             self.grid.set(*_pos, CollectableBall(color, 0))
+
+        # Place keys
+        self.key_poses = self._get_key_poses()
+        random.shuffle(self.key_colors)
+        for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
+            self.grid.set(*_pos, Key(color))
 
         # Make hidden order
         self.hidden_order_color = copy.deepcopy(self.ball_colors)
@@ -160,6 +193,12 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         for _pos, color in zip(self.poses, self.ball_colors):
             self.grid.set(*_pos, CollectableBall(color, 0))
 
+        # Place keys
+        self.key_poses = self._get_key_poses()
+        random.shuffle(self.key_colors)
+        for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
+            self.grid.set(*_pos, Key(color))
+
         # Make hidden order
         self.hidden_order_pos = []
         for color in self.hidden_order_color:
@@ -196,6 +235,9 @@ class OrderMemoryLargeEnv(MiniGridEnv):
                 if not self.wrong_reinit:
                     self.agent_pos = prev_agent_pos
                     self.agent_dir = prev_agent_dir
+
+        if current_cell and current_cell.type == 'key':
+            self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
@@ -337,6 +379,24 @@ class OrderMemoryLargeS10N4(OrderMemoryLargeEnv):
 register(
     id='MiniGrid-OrderMemoryLargeS10N4-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS10N4'
+)
+
+class OrderMemoryLargeS11N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 11x11
+        super().__init__(size=13, area_size=1, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS11N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS11N4'
+)
+
+class OrderMemoryLargeS13N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 13x13
+        super().__init__(size=15, area_size=1, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS13N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS13N4'
 )
 
 
