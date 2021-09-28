@@ -19,7 +19,7 @@ class IMazeEnv(MiniGridEnv):
         super().__init__(
             seed=seed,
             grid_size=size,
-            max_steps=5*size,
+            max_steps=10*size,
             # Set this to True for maximum speed
             see_through_walls=False,
         )
