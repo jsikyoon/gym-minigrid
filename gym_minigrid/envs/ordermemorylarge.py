@@ -153,8 +153,13 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         # Place keys
         self.key_poses = self._get_key_poses()
         random.shuffle(self.key_colors)
+        key_idx = 0
+        self.remain_key = []
         for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
-            self.grid.set(*_pos, Key(color))
+            self.grid.set(*_pos, Key(color, key_idx))
+            # track key status
+            self.remain_key.append(key_idx)
+            key_idx += 1
 
         # Make hidden order
         self.hidden_order_color = copy.deepcopy(self.ball_colors)
@@ -197,8 +202,8 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         if reset_key:
           self.key_poses = self._get_key_poses()
           random.shuffle(self.key_colors)
-          for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
-              self.grid.set(*_pos, Key(color))
+        for key_idx in self.remain_key:
+            self.grid.set(*self.key_poses[key_idx], Key(self.key_colors[key_idx]))
 
         # Make hidden order
         self.hidden_order_pos = []
@@ -239,6 +244,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         if current_cell and current_cell.type == 'key':
             self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
+            self.remain_key.remove(current_cell.idx)
             reward = 2.
 
         # Check if agent collects every ball in the order

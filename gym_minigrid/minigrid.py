@@ -282,8 +282,9 @@ class Door(WorldObj):
             fill_coords(img, point_in_circle(cx=0.75, cy=0.50, r=0.08), c)
 
 class Key(WorldObj):
-    def __init__(self, color='blue'):
+    def __init__(self, color='blue', idx=0):
         super(Key, self).__init__('key', color)
+        self.idx = idx
 
     def can_pickup(self):
         return True
