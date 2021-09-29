@@ -239,6 +239,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         if current_cell and current_cell.type == 'key':
             self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
+            reward = 2.
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
