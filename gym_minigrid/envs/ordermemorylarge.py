@@ -28,7 +28,8 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         max_steps=None,
         wrong_reinit=False,
         dist_thr=5,
-        key_can_overlap=False,
+        key_can_overlap=True,
+        key_can_pickup=False,
         key_dist_thr=4,
     ):
         assert (size-2) % area_size == 0
@@ -62,6 +63,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.poses = None
         self.num_key = num_key
         self.key_can_overlap = key_can_overlap
+        self.key_can_pickup = key_can_pickup
         self.key_dist_thr = key_dist_thr
 
         super().__init__(
@@ -262,7 +264,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
                     self.agent_pos = prev_agent_pos
                     self.agent_dir = prev_agent_dir
 
-        if (current_cell and current_cell.type == 'key') and self.key_can_overlap:
+        if (current_cell and current_cell.type == 'key') and self.key_can_pickup:
             self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
             self.remain_key.remove(current_cell.idx)
 
