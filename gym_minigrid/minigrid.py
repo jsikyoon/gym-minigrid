@@ -282,9 +282,10 @@ class Door(WorldObj):
             fill_coords(img, point_in_circle(cx=0.75, cy=0.50, r=0.08), c)
 
 class Key(WorldObj):
-    def __init__(self, color='blue', idx=0):
+    def __init__(self, color='blue', idx=0, can_overlap=False):
         super(Key, self).__init__('key', color)
         self.idx = idx
+        self._can_overlap = can_overlap
 
     def can_pickup(self):
         return True
@@ -304,7 +305,7 @@ class Key(WorldObj):
         fill_coords(img, point_in_circle(cx=0.56, cy=0.28, r=0.064), (0,0,0))
 
     def can_overlap(self):
-        return True
+        return self._can_overlap
 
 class Ball(WorldObj):
     def __init__(self, color='blue'):

@@ -22,12 +22,14 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         area_size=2,
         step_penalty=0.0,
         agent_view_size=3,
-        num_key=2,
+        num_key=8,
         reset_positions=False,
         agent_init_bottom=False,
         max_steps=None,
         wrong_reinit=False,
         dist_thr=5,
+        key_can_overlap=False,
+        key_dist_thr=4,
     ):
         assert (size-2) % area_size == 0
 
@@ -56,9 +58,11 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
         self.dist_thr = dist_thr
-        self.key_colors = COLOR_NAMES[num_objs:]
+        self.key_colors = COLOR_NAMES[:num_key]
         self.poses = None
         self.num_key = num_key
+        self.key_can_overlap = key_can_overlap
+        self.key_dist_thr = key_dist_thr
 
         super().__init__(
             grid_size=size,
@@ -123,6 +127,13 @@ class OrderMemoryLargeEnv(MiniGridEnv):
           if coor in self.poses:
             good_pos = False
 
+        coords_np = np.array(coords)
+        dist_mat = abs(coords_np.reshape(1, self.num_key, 2) - coords_np.reshape(self.num_key, 1, 2)).sum(-1)
+        dist_mat[np.arange(self.num_key), np.arange(self.num_key)] = 100
+        min_dist = dist_mat.min()
+        if min_dist < self.key_dist_thr:
+          good_pos = False
+
         while not good_pos:
           random.shuffle(total_coords)
           coords = total_coords[:self.num_key]
@@ -130,6 +141,13 @@ class OrderMemoryLargeEnv(MiniGridEnv):
           for coor in coords:
             if coor in self.poses:
               good_pos = False
+
+          coords_np = np.array(coords)
+          dist_mat = abs(coords_np.reshape(1, self.num_key, 2) - coords_np.reshape(self.num_key, 1, 2)).sum(-1)
+          dist_mat[np.arange(self.num_key), np.arange(self.num_key)] = 100
+          min_dist = dist_mat.min()
+          if min_dist < self.key_dist_thr:
+            good_pos = False
 
         return coords
 
@@ -153,13 +171,12 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         # Place keys
         self.key_poses = self._get_key_poses()
         random.shuffle(self.key_colors)
-        key_idx = 0
         self.key_list = []
-        for _pos, color in zip(self.key_poses, self.key_colors[:self.num_key]):
-            self.grid.set(*_pos, Key(color, key_idx))
+        for key_idx in range(self.num_key):
+            self.grid.set(*self.key_poses[key_idx],
+                      Key(self.key_colors[key_idx % len(self.key_colors)], idx=key_idx, can_overlap=self.key_can_overlap))
             # track key status
             self.key_list.append(key_idx)
-            key_idx += 1
         self.remain_key = self.key_list.copy()
 
         # Make hidden order
@@ -205,7 +222,8 @@ class OrderMemoryLargeEnv(MiniGridEnv):
           random.shuffle(self.key_colors)
           self.remain_key = self.key_list.copy()
         for key_idx in self.remain_key:
-            self.grid.set(*self.key_poses[key_idx], Key(self.key_colors[key_idx], key_idx))
+            self.grid.set(*self.key_poses[key_idx],
+                      Key(self.key_colors[key_idx % len(self.key_colors)], idx=key_idx, can_overlap=self.key_can_overlap))
 
         # Make hidden order
         self.hidden_order_pos = []
@@ -244,10 +262,9 @@ class OrderMemoryLargeEnv(MiniGridEnv):
                     self.agent_pos = prev_agent_pos
                     self.agent_dir = prev_agent_dir
 
-        if current_cell and current_cell.type == 'key':
+        if (current_cell and current_cell.type == 'key') and self.key_can_overlap:
             self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
             self.remain_key.remove(current_cell.idx)
-            reward = 2.
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
