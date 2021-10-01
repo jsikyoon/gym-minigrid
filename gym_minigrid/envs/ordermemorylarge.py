@@ -59,7 +59,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
         self.dist_thr = dist_thr
-        self.key_colors = COLOR_NAMES[:num_key]
+        self.key_colors = COLOR_NAMES[num_objs:]
         self.poses = None
         self.num_key = num_key
         self.key_can_overlap = key_can_overlap
@@ -171,15 +171,16 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             self.grid.set(*_pos, CollectableBall(color, 0))
 
         # Place keys
-        self.key_poses = self._get_key_poses()
-        random.shuffle(self.key_colors)
-        self.key_list = []
-        for key_idx in range(self.num_key):
-            self.grid.set(*self.key_poses[key_idx],
+        if self.num_key > 0:
+            self.key_poses = self._get_key_poses()
+            random.shuffle(self.key_colors)
+            self.key_list = []
+            for key_idx in range(self.num_key):
+                self.grid.set(*self.key_poses[key_idx],
                       Key(self.key_colors[key_idx % len(self.key_colors)], idx=key_idx, can_overlap=self.key_can_overlap))
             # track key status
-            self.key_list.append(key_idx)
-        self.remain_key = self.key_list.copy()
+                self.key_list.append(key_idx)
+            self.remain_key = self.key_list.copy()
 
         # Make hidden order
         self.hidden_order_color = copy.deepcopy(self.ball_colors)
@@ -219,12 +220,13 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             self.grid.set(*_pos, CollectableBall(color, 0))
 
         # Place keys
-        if reset_key:
-          self.key_poses = self._get_key_poses()
-          random.shuffle(self.key_colors)
-          self.remain_key = self.key_list.copy()
-        for key_idx in self.remain_key:
-            self.grid.set(*self.key_poses[key_idx],
+        if self.num_key > 0:
+            if reset_key:
+                self.key_poses = self._get_key_poses()
+                random.shuffle(self.key_colors)
+                self.remain_key = self.key_list.copy()
+            for key_idx in self.remain_key:
+                self.grid.set(*self.key_poses[key_idx],
                       Key(self.key_colors[key_idx % len(self.key_colors)], idx=key_idx, can_overlap=self.key_can_overlap))
 
         # Make hidden order
@@ -285,6 +287,14 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         return obs, reward, done, info
 
+class OrderMemoryLargeS5N5(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 5x5
+        super().__init__(size=7, area_size=1, num_objs=5, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS5N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS5N5'
+)
 
 class OrderMemoryLargeS6N3(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
@@ -352,6 +362,45 @@ register(
     entry_point='gym_minigrid.envs:OrderMemoryLargeS7N4'
 )
 
+class OrderMemoryLargeS7N5(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 7x7
+        super().__init__(size=9, area_size=1, num_objs=5, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS7N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS7N5'
+)
+
+class OrderMemoryLargeS8N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 8x8
+        super().__init__(size=10, area_size=1, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS8N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N4'
+)
+
+
+class OrderMemoryLargeS8N5(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 8x8
+        super().__init__(size=10, area_size=1, num_objs=5, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS8N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N5'
+)
+
+
+class OrderMemoryLargeS8N6(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 8x8
+        super().__init__(size=10, area_size=1, num_objs=6, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS8N6-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N6'
+)
+
+
 
 class OrderMemoryLargeS7N5(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
@@ -361,7 +410,6 @@ register(
     id='MiniGrid-OrderMemoryLargeS7N5-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS7N5'
 )
-
 class OrderMemoryLargeS8N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 8x8
@@ -419,6 +467,15 @@ register(
     entry_point='gym_minigrid.envs:OrderMemoryLargeS11N4'
 )
 
+class OrderMemoryLargeS11N5(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 11x11
+        super().__init__(size=13, area_size=1, num_objs=5, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS11N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS11N5'
+)
+
 class OrderMemoryLargeS13N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 13x13
@@ -426,6 +483,15 @@ class OrderMemoryLargeS13N4(OrderMemoryLargeEnv):
 register(
     id='MiniGrid-OrderMemoryLargeS13N4-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS13N4'
+)
+
+class OrderMemoryLargeS15N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 15x15
+        super().__init__(size=17, area_size=1, num_objs=4, agent_view_size=3, **kwargs)
+register(
+    id='MiniGrid-OrderMemoryLargeS15N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS15N4'
 )
 
 
