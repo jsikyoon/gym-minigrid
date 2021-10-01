@@ -420,16 +420,6 @@ register(
 )
 
 
-class OrderMemoryLargeS8N5(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 8x8
-        super().__init__(size=10, area_size=2, num_objs=5, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS8N5-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N5'
-)
-
-
 class OrderMemoryLargeS9N4(OrderMemoryLargeEnv):
     def __init__(self, **kwargs):
         # size=8 because walls take up one so map will be 8x8
