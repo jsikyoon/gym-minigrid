@@ -410,14 +410,6 @@ register(
     id='MiniGrid-OrderMemoryLargeS7N5-v0',
     entry_point='gym_minigrid.envs:OrderMemoryLargeS7N5'
 )
-class OrderMemoryLargeS8N4(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 8x8
-        super().__init__(size=10, area_size=2, num_objs=4, agent_view_size=3, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS8N4-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N4'
-)
 
 
 class OrderMemoryLargeS9N4(OrderMemoryLargeEnv):
