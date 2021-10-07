@@ -1,6 +1,7 @@
 import random, copy
 from gym_minigrid.minigrid import *
 from gym_minigrid.register import register
+import numpy as np
 
 
 class OrderMemoryLargeEnv(MiniGridEnv):
@@ -20,30 +21,50 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         num_objs=3,
         area_size=2,
         step_penalty=0.0,
-        agent_view_size=7,
+        agent_view_size=3,
+        num_key=8,
         reset_positions=False,
+        agent_init_bottom=False,
+        max_steps=None,
+        wrong_reinit=False,
+        dist_thr=5,
+        key_can_overlap=True,
+        key_can_pickup=False,
+        key_dist_thr=4,
     ):
         assert (size-2) % area_size == 0
 
         num_areas = ((size-2) // area_size)**2
         assert num_areas > num_objs
 
-        #max_steps = 100 * area_size
-        max_steps = 10 * size * num_objs**2
+        if max_steps is None:
+            max_steps = 100 * area_size
         self.num_areas = num_areas
         self.area_size = area_size
         self.num_objs = num_objs
         self.size = size
         self.max_steps = max_steps
         self.ball_colors = COLOR_NAMES[:num_objs]
+        self.agent_init_bottom = agent_init_bottom
+        self.wrong_reinit = wrong_reinit
         # start in center
-        self.agent_area = num_areas // 2
-        ball_areas = [x for x in range(num_areas) if x != self.agent_area]
-        self.ball_areas = []
-        for i in range(num_objs):
-            self.ball_areas.append(ball_areas[i*((num_areas-1)//num_objs)])
+        if agent_init_bottom:
+            self.agent_area = num_areas - (size - 2) // area_size // 2 - 1
+        else:
+            self.agent_area = num_areas // 2
+        self.ball_areas = [x for x in range(num_areas) if x != self.agent_area]
+        #self.ball_areas = []
+        #for i in range(num_objs):
+            #self.ball_areas.append(ball_areas[i*((num_areas-1)//num_objs)])
         self.step_penalty = step_penalty
         self.reset_positions = reset_positions
+        self.dist_thr = dist_thr
+        self.key_colors = COLOR_NAMES[num_objs:]
+        self.poses = None
+        self.num_key = num_key
+        self.key_can_overlap = key_can_overlap
+        self.key_can_pickup = key_can_pickup
+        self.key_dist_thr = key_dist_thr
 
         super().__init__(
             grid_size=size,
@@ -68,16 +89,69 @@ class OrderMemoryLargeEnv(MiniGridEnv):
     def _get_agent_pos(self):
         area = self.agent_area
         coords = self._get_coords_for_area(self.agent_area)
-        agent_pos = random.choice(coords)
+        if self.agent_init_bottom:
+            agent_pos = coords[-1]
+        else:
+            agent_pos = random.choice(coords)
         return agent_pos
 
     def _get_poses(self):
-        poses = []
+        total_coords = []
         for ball_area in self.ball_areas:
-            coords = self._get_coords_for_area(ball_area)
-            coord = random.choice(coords)
-            poses.append(coord)
-        return poses
+            total_coords = total_coords + self._get_coords_for_area(ball_area)
+        random.shuffle(total_coords)
+        coords = total_coords[:self.num_objs]
+        coords_np = np.array(coords)
+        dist_mat = abs(coords_np.reshape(1, self.num_objs, 2) - coords_np.reshape(self.num_objs, 1, 2)).sum(-1)
+        dist_mat[np.arange(self.num_objs), np.arange(self.num_objs)] = 100
+        min_dist = dist_mat.min()
+
+        while min_dist <= self.dist_thr:
+            random.shuffle(total_coords)
+            coords = total_coords[:self.num_objs]
+            coords_np = np.array(coords)
+            dist_mat = abs(coords_np.reshape(1, self.num_objs, 2) - coords_np.reshape(self.num_objs, 1, 2)).sum(-1)
+            dist_mat[np.arange(self.num_objs), np.arange(self.num_objs)] = 100
+            min_dist = dist_mat.min()
+
+        return coords
+
+    def _get_key_poses(self):
+        assert self.poses is not None
+
+        total_coords = []
+        for ball_area in self.ball_areas:
+            total_coords = total_coords + self._get_coords_for_area(ball_area)
+        random.shuffle(total_coords)
+        coords = total_coords[:self.num_key]
+        good_pos = True
+        for coor in coords:
+          if coor in self.poses:
+            good_pos = False
+
+        coords_np = np.array(coords)
+        dist_mat = abs(coords_np.reshape(1, self.num_key, 2) - coords_np.reshape(self.num_key, 1, 2)).sum(-1)
+        dist_mat[np.arange(self.num_key), np.arange(self.num_key)] = 100
+        min_dist = dist_mat.min()
+        if min_dist < self.key_dist_thr:
+          good_pos = False
+
+        while not good_pos:
+          random.shuffle(total_coords)
+          coords = total_coords[:self.num_key]
+          good_pos = True
+          for coor in coords:
+            if coor in self.poses:
+              good_pos = False
+
+          coords_np = np.array(coords)
+          dist_mat = abs(coords_np.reshape(1, self.num_key, 2) - coords_np.reshape(self.num_key, 1, 2)).sum(-1)
+          dist_mat[np.arange(self.num_key), np.arange(self.num_key)] = 100
+          min_dist = dist_mat.min()
+          if min_dist < self.key_dist_thr:
+            good_pos = False
+
+        return coords
 
     def _gen_grid(self, width, height):
         # Create an empty grid
@@ -96,6 +170,18 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         for _pos, color in zip(self.poses, self.ball_colors):
             self.grid.set(*_pos, CollectableBall(color, 0))
 
+        # Place keys
+        if self.num_key > 0:
+            self.key_poses = self._get_key_poses()
+            random.shuffle(self.key_colors)
+            self.key_list = []
+            for key_idx in range(self.num_key):
+                self.grid.set(*self.key_poses[key_idx],
+                      Key(self.key_colors[key_idx % len(self.key_colors)], idx=key_idx, can_overlap=self.key_can_overlap))
+            # track key status
+                self.key_list.append(key_idx)
+            self.remain_key = self.key_list.copy()
+
         # Make hidden order
         self.hidden_order_color = copy.deepcopy(self.ball_colors)
         random.shuffle(self.hidden_order_color)
@@ -106,11 +192,11 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         # initialization of visitation
         self.next_visit = 0
-        self.reward_set = [1] * len(self.ball_colors)
+        self.reward_set = [3] * len(self.ball_colors)
 
         self.mission = "collect objects in hidden order as many as possible"
 
-    def _reset_grid(self):
+    def _reset_grid(self, reset_key=False):
         # Create an empty grid
         self.grid = Grid(self.size, self.size)
 
@@ -133,12 +219,33 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         for _pos, color in zip(self.poses, self.ball_colors):
             self.grid.set(*_pos, CollectableBall(color, 0))
 
+        # Place keys
+        if self.num_key > 0:
+            if reset_key:
+                self.key_poses = self._get_key_poses()
+                random.shuffle(self.key_colors)
+                self.remain_key = self.key_list.copy()
+            for key_idx in self.remain_key:
+                self.grid.set(*self.key_poses[key_idx],
+                      Key(self.key_colors[key_idx % len(self.key_colors)], idx=key_idx, can_overlap=self.key_can_overlap))
+
         # Make hidden order
         self.hidden_order_pos = []
         for color in self.hidden_order_color:
             self.hidden_order_pos.append(self.poses[self.ball_colors.index(color)])
 
+    def reset(self):
+        obs = MiniGridEnv.reset(self)
+        obs.update({
+            'ball_pos': self.hidden_order_pos,
+            'order': self.hidden_order_color,
+            'next_visit': self.next_visit,
+            })
+        return obs
+
     def step(self, action):
+        prev_agent_pos = self.agent_pos
+        prev_agent_dir = self.agent_dir
         obs, reward, done, info = MiniGridEnv.step(self, action)
 
         # Check if we hit a ball
@@ -154,91 +261,29 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             else:
                 self.next_visit = 0
                 self._reset_grid()
-                obs = self.gen_obs()
+                #reward = -1.
+                if not self.wrong_reinit:
+                    self.agent_pos = prev_agent_pos
+                    self.agent_dir = prev_agent_dir
+
+        if (current_cell and current_cell.type == 'key') and self.key_can_pickup:
+            self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
+            self.remain_key.remove(current_cell.idx)
 
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
             self.next_visit = 0
-            self.reward_set = [1] * len(self.ball_colors)
-            self._reset_grid()
+            self.reward_set = [3] * len(self.ball_colors)
+            self._reset_grid(reset_key=True)
+            #reward = 3.
 
+        obs = self.gen_obs()
         reward -= self.step_penalty
+        obs.update({
+            'ball_pos': self.hidden_order_pos,
+            'order': self.hidden_order_color,
+            'next_visit': self.next_visit,
+            })
 
         return obs, reward, done, info
-
-
-class OrderMemoryLargeS6N3(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=3, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N3-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N3'
-)
-
-class OrderMemoryLargeS9N3(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=11, area_size=3, num_objs=3, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS9N3-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS9N3'
-)
-
-class OrderMemoryLargeS12N3(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=14, area_size=4, num_objs=3, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS12N3-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS12N3'
-)
-
-class OrderMemoryLargeS15N3(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=17, area_size=5, num_objs=3, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS15N3-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS15N3'
-)
-
-
-class OrderMemoryLargeS6N4(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=4, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N4-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N4'
-)
-
-class OrderMemoryLargeS9N4(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=11, area_size=3, num_objs=4, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS9N4-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS9N4'
-)
-
-
-class OrderMemoryLargeS6N5(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=8 because walls take up one so map will be 6x6
-        super().__init__(size=8, area_size=2, num_objs=5, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS6N5-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS6N5'
-)
-
-class OrderMemoryLargeS9N5(OrderMemoryLargeEnv):
-    def __init__(self, **kwargs):
-        # size=11 because walls take up one so map will be 6x6
-        super().__init__(size=11, area_size=3, num_objs=5, agent_view_size=7, **kwargs)
-register(
-    id='MiniGrid-OrderMemoryLargeS9N5-v0',
-    entry_point='gym_minigrid.envs:OrderMemoryLargeS9N5'
-)
-
 

@@ -674,15 +674,15 @@ class MiniGridEnv(gym.Env):
         right = 1
         forward = 2
 
-        ## Pick up an object
-        #pickup = 3
-        ## Drop an object
-        #drop = 4
-        ## Toggle/activate an object
-        #toggle = 5
+        # Pick up an object
+        pickup = 3
+        # Drop an object
+        drop = 4
+        # Toggle/activate an object
+        toggle = 5
 
-        ## Done completing task
-        #done = 6
+        # Done completing task
+        done = 6
 
     def __init__(
         self,
