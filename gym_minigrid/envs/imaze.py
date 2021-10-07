@@ -19,7 +19,8 @@ class IMazeEnv(MiniGridEnv):
         super().__init__(
             seed=seed,
             grid_size=size,
-            max_steps=10*size,
+            #max_steps=10*size,
+            max_steps=100,
             # Set this to True for maximum speed
             see_through_walls=False,
         )
@@ -60,14 +61,14 @@ class IMazeEnv(MiniGridEnv):
         self.agent_dir = 3
 
         # Place objects
-        start_room_obj = self._rand_elem([Key, Ball])
-        self.grid.set(1, height // 2 - 1, start_room_obj('green'))
+        start_room_obj = self._rand_elem(['green', 'blue'])
+        self.grid.set(1, height // 2 - 1, start_room_obj(Ball))
 
-        other_objs = self._rand_elem([[Ball, Key], [Key, Ball]])
+        other_objs = self._rand_elem([['green', 'blue'], ['green', 'blue']])
         pos0 = (hallway_end + 1, height // 2 - 4)
         pos1 = (hallway_end + 1, height // 2 + 4)
-        self.grid.set(*pos0, other_objs[0]('green'))
-        self.grid.set(*pos1, other_objs[1]('green'))
+        self.grid.set(*pos0, other_objs[0](Ball))
+        self.grid.set(*pos1, other_objs[1](Ball))
 
         # Choose the target objects
         if start_room_obj == other_objs[0]:
