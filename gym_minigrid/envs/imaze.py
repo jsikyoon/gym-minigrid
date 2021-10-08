@@ -62,13 +62,13 @@ class IMazeEnv(MiniGridEnv):
 
         # Place objects
         start_room_obj = self._rand_elem(['green', 'blue'])
-        self.grid.set(1, height // 2 - 1, start_room_obj(Ball))
+        self.grid.set(1, height // 2 - 1, Ball(start_room_obj))
 
         other_objs = self._rand_elem([['green', 'blue'], ['green', 'blue']])
         pos0 = (hallway_end + 1, height // 2 - 4)
         pos1 = (hallway_end + 1, height // 2 + 4)
-        self.grid.set(*pos0, other_objs[0](Ball))
-        self.grid.set(*pos1, other_objs[1](Ball))
+        self.grid.set(*pos0, Ball(other_objs[0]))
+        self.grid.set(*pos1, Ball(other_objs[1]))
 
         # Choose the target objects
         if start_room_obj == other_objs[0]:
