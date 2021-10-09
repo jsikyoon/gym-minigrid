@@ -21,6 +21,7 @@ class IMazeEnv(MiniGridEnv):
             grid_size=size,
             #max_steps=10*size,
             max_steps=100,
+            agent_view_size=3,
             # Set this to True for maximum speed
             see_through_walls=False,
         )
@@ -65,8 +66,10 @@ class IMazeEnv(MiniGridEnv):
         self.grid.set(1, height // 2 - 1, Ball(start_room_obj))
 
         other_objs = self._rand_elem([['green', 'blue'], ['green', 'blue']])
-        pos0 = (hallway_end + 1, height // 2 - 4)
-        pos1 = (hallway_end + 1, height // 2 + 4)
+        #pos0 = (hallway_end + 1, height // 2 - 4)
+        pos0 = (hallway_end + 1, height // 2 - 2)
+        #pos1 = (hallway_end + 1, height // 2 + 4)
+        pos1 = (hallway_end + 1, height // 2 + 2)
         self.grid.set(*pos0, Ball(other_objs[0]))
         self.grid.set(*pos1, Ball(other_objs[1]))
 
