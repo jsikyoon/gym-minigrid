@@ -133,7 +133,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         # initialization of visitation
         self.next_visit = 0
-        self.reward_set = [1] * len(self.ball_colors)
+        self.reward_set = [3] * len(self.ball_colors)
 
         self.mission = "collect objects in hidden order as many as possible"
 
@@ -192,7 +192,7 @@ class OrderMemoryLargeEnv(MiniGridEnv):
             else:
                 self.next_visit = 0
                 self._reset_grid()
-                reward = -1.
+                #reward = -1.
                 if not self.wrong_reinit:
                     self.agent_pos = prev_agent_pos
                     self.agent_dir = prev_agent_dir
@@ -200,9 +200,9 @@ class OrderMemoryLargeEnv(MiniGridEnv):
         # Check if agent collects every ball in the order
         if self.next_visit >= len(self.ball_colors):
             self.next_visit = 0
-            self.reward_set = [1] * len(self.ball_colors)
+            self.reward_set = [3] * len(self.ball_colors)
             self._reset_grid()
-            reward = 3.
+            #reward = 3.
 
         obs = self.gen_obs()
         reward -= self.step_penalty
