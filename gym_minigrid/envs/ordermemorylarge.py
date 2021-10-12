@@ -287,3 +287,45 @@ class OrderMemoryLargeEnv(MiniGridEnv):
 
         return obs, reward, done, info
 
+class OrderMemoryLargeS8N4(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 8x8
+        super().__init__(size=10, area_size=1, num_objs=4, agent_view_size=7,
+reset_positions=False,
+        agent_init_bottom=True,
+        max_steps=100,
+        wrong_reinit=False,
+        dist_thr=2,
+        num_key=0,)
+register(
+    id='MiniGrid-OrderMemoryLargeS8N4-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N4'
+)
+ class OrderMemoryLargeS8N5(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 8x8
+        super().__init__(size=10, area_size=1, num_objs=5, agent_view_size=7,
+reset_positions=False,
+        agent_init_bottom=True,
+        max_steps=100,
+        wrong_reinit=False,
+        dist_thr=2,
+        num_key=0,)
+register(
+    id='MiniGrid-OrderMemoryLargeS8N5-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N5'
+)
+ class OrderMemoryLargeS8N6(OrderMemoryLargeEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 8x8
+        super().__init__(size=10, area_size=1, num_objs=6, agent_view_size=7,
+reset_positions=False,
+        agent_init_bottom=True,
+        max_steps=100,
+        wrong_reinit=False,
+        dist_thr=2,
+        num_key=0,)
+register(
+    id='MiniGrid-OrderMemoryLargeS8N6-v0',
+    entry_point='gym_minigrid.envs:OrderMemoryLargeS8N6'
+)
