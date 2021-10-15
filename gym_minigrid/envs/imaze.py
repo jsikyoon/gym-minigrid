@@ -28,6 +28,8 @@ class IMazeEnv(MiniGridEnv):
         )
 
     def _gen_grid(self, width, height):
+        self._width = width
+        self._height = height
         self.grid = Grid(width, height)
 
         # Generate the surrounding walls
@@ -84,12 +86,18 @@ class IMazeEnv(MiniGridEnv):
 
         self.mission = 'go to the matching object at the end of the hallway'
 
+        self.additional_reward_set = [0.01] * (width-2)
+
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
 
+        if self.agent_pos[1] == self._height//2:
+            reward = self.additional_reward_set[self.agent_pos[0]-1]
+            self.additional_reward_set[self.agent_pos[0]-1] = 0
+
         if tuple(self.agent_pos) == self.success_pos:
             #reward = self._reward()
-            reward = 1
+            reward = 10
             done = True
         if tuple(self.agent_pos) == self.failure_pos:
             reward = 0.2
