@@ -15,12 +15,13 @@ class IMazeEnv(MiniGridEnv):
         self,
         seed,
         size=8,
+        max_steps=100
     ):
         super().__init__(
             seed=seed,
             grid_size=size,
             #max_steps=10*size,
-            max_steps=100,
+            max_steps=max_steps,
             agent_view_size=3,
             # Set this to True for maximum speed
             see_through_walls=False,
@@ -91,10 +92,28 @@ class IMazeEnv(MiniGridEnv):
             reward = 1
             done = True
         if tuple(self.agent_pos) == self.failure_pos:
-            reward = 0
+            reward = 0.2
             done = True
 
         return obs, reward, done, info
+
+
+class IMazeS5(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=5, max_steps=20)
+register(
+    id='MiniGrid-IMazeS5-v0',
+    entry_point='gym_minigrid.envs:IMazeS5',
+)
+
+
+class IMazeS9(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=9, max_steps=30)
+register(
+    id='MiniGrid-IMazeS9-v0',
+    entry_point='gym_minigrid.envs:IMazeS9',
+)
 
 
 class IMazeS13(IMazeEnv):

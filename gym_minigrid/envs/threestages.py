@@ -124,21 +124,19 @@ class ThreeStagesEnv(MiniGridEnv):
                 if action == 2:
                     reward = 1
                 else:
-                    reward = 0
+                    reward = 0.2
             else:
                 if action == 2:
-                    reward = 0
+                    reward = 0.2
                 else:
                     reward = 1
-
-        print(self.step_count, self.steps_remaining)
 
         return obs, reward, done, info
 
 
 class ThreeStagesEasy(ThreeStagesEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, grid_size=13, max_steps=20, level='easy')
+        super().__init__(seed=seed, grid_size=13, max_steps=10, level='easy')
 register(
     id='MiniGrid-3StagesEasy-v0',
     entry_point='gym_minigrid.envs:ThreeStagesEasy',
