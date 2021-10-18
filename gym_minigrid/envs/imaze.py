@@ -108,7 +108,7 @@ class IMazeEnv(MiniGridEnv):
 
 class IMazeS5(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=5, max_steps=20)
+        super().__init__(seed=seed, size=5, max_steps=7)
 register(
     id='MiniGrid-IMazeS5-v0',
     entry_point='gym_minigrid.envs:IMazeS5',
@@ -117,7 +117,7 @@ register(
 
 class IMazeS9(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=9, max_steps=30)
+        super().__init__(seed=seed, size=9, max_steps=15)
 register(
     id='MiniGrid-IMazeS9-v0',
     entry_point='gym_minigrid.envs:IMazeS9',
@@ -126,7 +126,7 @@ register(
 
 class IMazeS13(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=13)
+        super().__init__(seed=seed, size=13, max_steps=20)
 register(
     id='MiniGrid-IMazeS13-v0',
     entry_point='gym_minigrid.envs:IMazeS13',
@@ -135,7 +135,7 @@ register(
 
 class IMazeS21(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=21)
+        super().__init__(seed=seed, size=21, max_steps=30)
 register(
     id='MiniGrid-IMazeS21-v0',
     entry_point='gym_minigrid.envs:IMazeS21',
@@ -144,10 +144,58 @@ register(
 
 class IMazeS31(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=31)
+        super().__init__(seed=seed, size=31, max_steps=40)
 register(
     id='MiniGrid-IMazeS31-v0',
     entry_point='gym_minigrid.envs:IMazeS31',
+)
+
+class IMazeS41(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=41, max_steps=50)
+register(
+    id='MiniGrid-IMazeS41-v0',
+    entry_point='gym_minigrid.envs:IMazeS41',
+)
+
+class IMazeS51(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=51, max_steps=60)
+register(
+    id='MiniGrid-IMazeS51-v0',
+    entry_point='gym_minigrid.envs:IMazeS51',
+)
+
+class IMazeS61(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=61, max_steps=70)
+register(
+    id='MiniGrid-IMazeS61-v0',
+    entry_point='gym_minigrid.envs:IMazeS61',
+)
+
+class IMazeS71(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=71, max_steps=80)
+register(
+    id='MiniGrid-IMazeS71-v0',
+    entry_point='gym_minigrid.envs:IMazeS71',
+)
+
+class IMazeS81(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=81, max_steps=90)
+register(
+    id='MiniGrid-IMazeS81-v0',
+    entry_point='gym_minigrid.envs:IMazeS81',
+)
+
+class IMazeS91(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=91, max_steps=100)
+register(
+    id='MiniGrid-IMazeS91-v0',
+    entry_point='gym_minigrid.envs:IMazeS91',
 )
 
 
