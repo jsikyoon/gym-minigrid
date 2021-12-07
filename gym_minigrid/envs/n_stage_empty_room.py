@@ -116,9 +116,9 @@ class NStageEmptyEnv(MiniGridEnv):
                     agent_pos[1] == self.sampled_pos[self.next_visit][1]
                 ):
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
-                    reward += 1.0
                     self.next_visit += 1
                     if self.next_visit == self.num_stages:
+                        reward += 3.0  # +3 reward for complete a circle
                         self._reset_grid()
                         self.place_agent()
                 else:
