@@ -50,7 +50,7 @@ class NStageEmptyEnv(MiniGridEnv):
         self.agent_pos = self.agent_start_pos
         self.agent_dir = self.agent_start_dir
 
-    def rest(self):
+    def reset(self):
         self.stage_idx = 0
         self.next_visit = 0
         obs = MiniGridEnv.reset(self)
