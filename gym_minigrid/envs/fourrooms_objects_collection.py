@@ -12,7 +12,9 @@ class FourRoomsObjectsEnv(MiniGridEnv):
     Can specify agent and goal position, if not it set at random.
     """
 
-    def __init__(self, num_good_obj=4, num_bad_obj=4, agent_pos=None, goal_pos=None):
+    def __init__(
+        self, num_good_obj=4, num_bad_obj=4, grid_size=17, agent_pos=None, goal_pos=None
+    ):
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
         self.rand = None
@@ -21,7 +23,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         self.num_good_obj = num_good_obj
         self.num_bad_obj = num_bad_obj
 
-        super().__init__(grid_size=17, max_steps=100)
+        super().__init__(grid_size=grid_size, max_steps=100)
 
     def _get_poses(self):
         total_coords = []
@@ -123,6 +125,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
                 self._reset_grid()
                 self.place_agent()
 
+        obs = self.gen_obs()
         if self.step_count >= self.max_steps:
             done = True
 
