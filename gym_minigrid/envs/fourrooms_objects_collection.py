@@ -22,6 +22,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         self.bad_color = "blue"
         self.num_good_obj = num_good_obj
         self.num_bad_obj = num_bad_obj
+        self.dist_thr = 2
 
         super().__init__(grid_size=grid_size, max_steps=100)
 
@@ -79,14 +80,6 @@ class FourRoomsObjectsEnv(MiniGridEnv):
                     pos = (self._rand_int(xL + 1, xR), yB)
                     self.grid.set(*pos, None)
 
-        # Randomize the player start position and orientation
-        if self._agent_default_pos is not None:
-            self.agent_pos = self._agent_default_pos
-            self.grid.set(*self._agent_default_pos, None)
-            self.agent_dir = self._rand_int(0, 4)  # assuming random start direction
-        else:
-            self.place_agent()
-
         if self._goal_default_pos is not None:
             goal = Goal()
             self.put_obj(goal, *self._goal_default_pos)
@@ -98,13 +91,49 @@ class FourRoomsObjectsEnv(MiniGridEnv):
 
         self.obj_pos = self._get_poses()
         self.rand.shuffle(self.obj_pos)
-        self.sampled_pos = self.rand.sample(
+        sampled_pos = self.rand.sample(
             self.obj_pos, self.num_bad_obj + self.num_good_obj
         )
+        sampled_pos_np = np.array(sampled_pos)
+        dist_mat = abs(
+            sampled_pos_np.reshape(1, self.num_bad_obj + self.num_good_obj, 2)
+            - sampled_pos_np.reshape(self.num_bad_obj + self.num_good_obj, 1, 2)
+        ).sum(-1)
+        dist_mat[
+            np.arange(self.num_bad_obj + self.num_good_obj),
+            np.arange(self.num_bad_obj + self.num_good_obj),
+        ] = 100
+        min_dist = dist_mat.min()
+
+        while min_dist <= self.dist_thr:
+            sampled_pos = self.rand.sample(
+                self.obj_pos, self.num_bad_obj + self.num_good_obj
+            )
+            sampled_pos_np = np.array(sampled_pos)
+            dist_mat = abs(
+                sampled_pos_np.reshape(1, self.num_bad_obj + self.num_good_obj, 2)
+                - sampled_pos_np.reshape(self.num_bad_obj + self.num_good_obj, 1, 2)
+            ).sum(-1)
+            dist_mat[
+                np.arange(self.num_bad_obj + self.num_good_obj),
+                np.arange(self.num_bad_obj + self.num_good_obj),
+            ] = 100
+            min_dist = dist_mat.min()
+
+        self.sampled_pos = sampled_pos
+
         for i in range(self.num_good_obj):
             self.grid.set(*self.sampled_pos[i], CollectableBall(self.good_color, 0))
         for i in range(self.num_good_obj, self.num_bad_obj + self.num_good_obj):
             self.grid.set(*self.sampled_pos[i], CollectableBall(self.bad_color, 0))
+
+        # Randomize the player start position and orientation
+        if self._agent_default_pos is not None:
+            self.agent_pos = self._agent_default_pos
+            self.grid.set(*self._agent_default_pos, None)
+            self.agent_dir = self._rand_int(0, 4)  # assuming random start direction
+        else:
+            self.place_agent()
 
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
@@ -137,3 +166,14 @@ register(
     entry_point="gym_minigrid.envs:FourRoomsObjectsEnv",
 )
 
+
+class FourRoomsObjectsEnvS23N8(FourRoomsObjectsEnv):
+    def __init__(self, **kwargs):
+        # size=8 because walls take up one so map will be 5x5
+        super().__init__(num_good_obj=8, num_bad_obj=8, grid_size=23, **kwargs)
+
+
+register(
+    id="MiniGrid-FourRooms-ObjectsEnvS23N8-v0",
+    entry_point="gym_minigrid.envs:FourRoomsObjectsEnvS23N8",
+)
