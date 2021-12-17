@@ -13,7 +13,13 @@ class FourRoomsObjectsEnv(MiniGridEnv):
     """
 
     def __init__(
-        self, num_good_obj=4, num_bad_obj=4, grid_size=17, agent_pos=None, goal_pos=None
+        self,
+        num_good_obj=4,
+        num_bad_obj=4,
+        grid_size=17,
+        yellow_first=False,
+        agent_pos=None,
+        goal_pos=None,
     ):
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
@@ -23,6 +29,8 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         self.num_good_obj = num_good_obj
         self.num_bad_obj = num_bad_obj
         self.dist_thr = 2
+        self.yellow_first = yellow_first
+        self.yellow_colleted = 0
 
         super().__init__(grid_size=grid_size, max_steps=100)
 
@@ -36,6 +44,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         return total_coords
 
     def _reset_grid(self):
+        self.yellow_colleted = 0
 
         # objects reappear
         for i in range(self.num_good_obj):
@@ -146,13 +155,17 @@ class FourRoomsObjectsEnv(MiniGridEnv):
             if current_cell.type == "ball" and current_cell.color == self.good_color:
                 self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                 reward += 1.0
+                self.yellow_colleted += 1
             if current_cell.type == "ball" and current_cell.color == self.bad_color:
                 self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                 reward += -1.0
             if current_cell.type == "goal":
-                reward += 3.0
-                self._reset_grid()
-                self.place_agent()
+                if (not self.yellow_first) or (
+                    self.yellow_colleted == self.num_good_obj
+                ):
+                    reward += 3.0
+                    self._reset_grid()
+                    self.place_agent()
 
         obs = self.gen_obs()
         if self.step_count >= self.max_steps:
@@ -176,4 +189,32 @@ class FourRoomsObjectsEnvS23N8(FourRoomsObjectsEnv):
 register(
     id="MiniGrid-FourRooms-ObjectsEnvS23N8-v0",
     entry_point="gym_minigrid.envs:FourRoomsObjectsEnvS23N8",
+)
+
+
+class FourRoomsObjectsEnvS11N4YellowFirst(FourRoomsObjectsEnv):
+    def __init__(self, **kwargs):
+        # room size=4, yellow_first
+        super().__init__(
+            num_good_obj=4, num_bad_obj=4, grid_size=11, yellow_first=True, **kwargs
+        )
+
+
+register(
+    id="MiniGrid-FourRooms-ObjectsEnvS11N4YellowFirst-v0",
+    entry_point="gym_minigrid.envs:FourRoomsObjectsEnvS11N4YellowFirst",
+)
+
+
+class FourRoomsObjectsEnvS11N4(FourRoomsObjectsEnv):
+    def __init__(self, **kwargs):
+        # room size=4
+        super().__init__(
+            num_good_obj=4, num_bad_obj=4, grid_size=11, yellow_first=False, **kwargs
+        )
+
+
+register(
+    id="MiniGrid-FourRooms-ObjectsEnvS11N4-v0",
+    entry_point="gym_minigrid.envs:FourRoomsObjectsEnvS11N4",
 )
