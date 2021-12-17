@@ -46,10 +46,6 @@ class NStageEmptyEnv(MiniGridEnv):
         self.next_visit = 0
         self._set_stage()
 
-        # Place the agent
-        self.agent_pos = self.agent_start_pos
-        self.agent_dir = self.agent_start_dir
-
     def reset(self):
         self.stage_idx = 0
         self.next_visit = 0
@@ -64,17 +60,18 @@ class NStageEmptyEnv(MiniGridEnv):
         self.grid.wall_rect(0, 0, self.width, self.height)
         self.obj_pos = self._get_poses()
         self.rand.shuffle(self.obj_pos)
-        self.sampled_pos = self.rand.sample(self.obj_pos, self.num_stages)
+        sampled_pos = self.rand.sample(
+            self.obj_pos, self.num_stages + 1
+        )  # one for agent
+        self.sampled_pos = sampled_pos[: self.num_stages]
+        agent_pos = sampled_pos[-1]
         self.rand.shuffle(self.ball_colors)
         # begin first stage
         self._set_stage()
 
         # Place the agent
-        if self.agent_start_pos is not None:
-            self.agent_pos = self.agent_start_pos
-            self.agent_dir = self.agent_start_dir
-        else:
-            self.place_agent()
+        self.agent_pos = agent_pos
+        self.agent_dir = self._rand_int(0, 4)
 
         self.mission = "get to the green goal square"
 
@@ -109,8 +106,6 @@ class NStageEmptyEnv(MiniGridEnv):
                 reward += 1.0
                 self.stage_idx += 1
                 self._set_stage()
-                if self.stage_idx == self.num_stages:
-                    self.place_agent()
             if current_cell.type == "ball" and (self.stage_idx == self.num_stages):
                 if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
                     agent_pos[1] == self.sampled_pos[self.next_visit][1]
@@ -120,7 +115,6 @@ class NStageEmptyEnv(MiniGridEnv):
                     if self.next_visit == self.num_stages:
                         reward += 3.0  # +3 reward for complete a circle
                         self._reset_grid()
-                        self.place_agent()
                 else:
                     self.next_visit = 0
                     self._set_stage()
