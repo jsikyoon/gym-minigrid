@@ -119,7 +119,7 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
                     self.next_visit += 1
                     if self.next_visit == self.num_stages:
                         reward += 3.0  # +3 reward for complete a circle
-                        self._reset_grid()
+                        done = True
                     else:
                         reward += 1
                 else:
@@ -128,6 +128,7 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
         else:
             if self.stay_time >= self.stage_one_period:
                 self.stage_idx += 1
+                self.stage_idx = min(self.stage_idx, self.num_stages)
                 self._set_stage()
                 self.stay_time = 0
 
