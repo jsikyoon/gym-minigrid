@@ -126,7 +126,9 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
                     reward += -1.0
                     done = True
         else:
-            if self.stay_time >= self.stage_one_period:
+            if (self.stay_time >= self.stage_one_period) and (
+                self.stage_idx != self.num_stages
+            ):
                 self.stage_idx += 1
                 self.stage_idx = min(self.stage_idx, self.num_stages)
                 self._set_stage()
