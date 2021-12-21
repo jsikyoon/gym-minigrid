@@ -76,9 +76,12 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
         self.agent_pos = agent_pos
         self.agent_dir = self._rand_int(0, 4)
 
+        self.agent_init_pos = agent_pos
+        self.agent_init_dir = self.agent_dir
+
         self.mission = "get to the green goal square"
 
-    def _set_stage(self,):
+    def _set_stage(self, reset_agent=False):
 
         # Create an empty grid
         self.grid = Grid(self.width, self.height)
@@ -95,6 +98,9 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
             for i in range(self.num_stages):
                 ball_color = self.ball_colors[i]
                 self.grid.set(*self.sampled_pos[i], CollectableBall(ball_color, 0))
+            if reset_agent:
+                self.agent_pos = self.agent_init_pos
+                self.agent_dir = self.agent_init_dir
 
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
@@ -109,7 +115,7 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
                 self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                 reward += 1.0
                 self.stage_idx += 1
-                self._set_stage()
+                self._set_stage(reset_agent=True)
                 self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
                 if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
