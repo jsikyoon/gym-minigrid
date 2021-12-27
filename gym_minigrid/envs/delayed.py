@@ -73,6 +73,15 @@ register(
     entry_point='gym_minigrid.envs:DelayedEnvD5S7x7'
 )
 
+class DelayedEnvD0S7x7(DelayedEnv):
+    def __init__(self, **kwargs):
+        super().__init__(size=7, agent_start_pos=None, delay=0)
+
+register(
+    id='MiniGrid-Delayed-D0-7x7-v0',
+    entry_point='gym_minigrid.envs:DelayedEnvD0S7x7'
+)
+
 class DelayedEnvD5S9x9(DelayedEnv):
     def __init__(self, **kwargs):
         super().__init__(size=9, agent_start_pos=None)
