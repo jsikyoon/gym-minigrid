@@ -21,7 +21,7 @@ class DelayedEnv(MiniGridEnv):
         super().__init__(
             grid_size=size,
             #max_steps=size*size,
-            max_steps=3*size,
+            max_steps=size*size,
             # Set this to True for maximum speed
             see_through_walls=True
         )
