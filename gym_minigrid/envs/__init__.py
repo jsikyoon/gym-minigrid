@@ -29,3 +29,4 @@ from gym_minigrid.envs.fourrooms_objects_collection import *
 from gym_minigrid.envs.n_stage_empty_room import *
 from gym_minigrid.envs.n_stage_empty_room_noloop import *
 from gym_minigrid.envs.n_stage_empty_room_noloop_partial_order import *
+from gym_minigrid.envs.delayed import *
