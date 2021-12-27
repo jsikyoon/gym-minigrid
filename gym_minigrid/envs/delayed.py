@@ -42,11 +42,14 @@ class DelayedEnv(MiniGridEnv):
 
         obj = CollectableBall('green', 1)
         self.place_obj(obj)
+        self.reward_steps = None
 
         self.mission = 'collect the ball for delayed reward'
 
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
+
+        reward = 0
 
         # Check if we hit a ball
         current_cell = self.grid.get(*self.agent_pos)
