@@ -37,6 +37,7 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
         """
         self.target_type = target_type
         self.target_list = []
+        self.dist_thr = 2.0
 
         super().__init__(
             grid_size=size,
@@ -65,27 +66,43 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
         self.stage_idx = 0
         self.stay_time = 0
         self.frist_full_stage = True
+        # idx=0: any ball, idx > 0, the i-th ball indicated with idx
         if self.target_type == "first":
-            self.target_list = [0]  # index starts from 0
-        elif self.target_type == "first_two":
             self.target_list = [0, 1]
-        # elif self.target_type == "qeuried":
-        #     self.target_list = self.rand.sample(range(3), 1)
+        elif self.target_type == "first_two":
+            self.target_list = [0, 1, 2]
+        elif self.target_type == "queried":
+            target_list = self.rand.sample(range(1, self.num_stages), 1)
+            self.target_list = [0] + target_list
+
         else:
             raise ValueError("Invalid target type.")
-        self.next_visit = self.target_list[0]
         obs = MiniGridEnv.reset(self)
+        obs.update(
+            {"target_idx": self.target_list[:1],}
+        )
         return obs
 
     def _gen_grid(self, width, height):
 
         self.grid = Grid(self.width, self.height)  # to get position list
         self.grid.wall_rect(0, 0, self.width, self.height)
-        self.obj_pos = self._get_poses()
-        self.rand.shuffle(self.obj_pos)
-        sampled_pos = self.rand.sample(
-            self.obj_pos, self.num_stages + 1
-        )  # one for agent
+        obj_pos = self._get_poses()
+        self.rand.shuffle(obj_pos)
+        min_dist = 0.0
+        while min_dist < self.dist_thr:
+            sampled_pos = self.rand.sample(
+                obj_pos, self.num_stages + 1
+            )  # one for agent
+            sampled_pos_np = np.array(sampled_pos)
+            dist_mat = abs(
+                sampled_pos_np.reshape(1, self.num_stages + 1, 2)
+                - sampled_pos_np.reshape(self.num_stages + 1, 1, 2)
+            ).sum(-1)
+            dist_mat[
+                np.arange(self.num_stages + 1), np.arange(self.num_stages + 1),
+            ] = 100
+            min_dist = dist_mat.min()
         self.sampled_pos = sampled_pos[: self.num_stages]
         agent_pos = sampled_pos[-1]
         self.rand.shuffle(self.ball_colors)
@@ -132,17 +149,21 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
         agent_pos = tuple(self.agent_pos)
         self.stay_time += 1
         if current_cell:
-            if current_cell.type == "ball" and (self.stage_idx != self.num_stages):
+            if current_cell.type == "ball" and (self.stage_idx < self.num_stages):
                 if self.stage_one:  # include stage 1 in RL
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 1.0
                     self.stage_idx += 1
+                    if self.stage_idx == self.num_stages:
+                        # transit into stage 2
+                        self.target_list = self.target_list[1:]
+                        self.next_visit = self.target_list[0]
                     self._set_stage()
                     self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
-                if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
-                    agent_pos[1] == self.sampled_pos[self.next_visit][1]
-                ):
+                if (agent_pos[0] == self.sampled_pos[self.next_visit - 1][0]) and (
+                    agent_pos[1] == self.sampled_pos[self.next_visit - 1][1]
+                ):  # next_visit index starts from 1
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     self.target_list = self.target_list[1:]
                     reward += 2  # to be distinguished from stage 1 reward (for logs)
@@ -159,11 +180,17 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
                 self.stage_idx < self.num_stages
             ):
                 self.stage_idx += 1
-                self.stage_idx = min(self.stage_idx, self.num_stages)
+                # transit into stage 2
+                if self.stage_idx == self.num_stages:
+                    self.target_list = self.target_list[1:]
+                    self.next_visit = self.target_list[0]
                 self._set_stage()
                 self.stay_time = 0
 
         obs = self.gen_obs()
+        obs.update(
+            {"target_idx": self.target_list[:1],}
+        )
         if self.step_count >= self.max_steps:
             done = True
 

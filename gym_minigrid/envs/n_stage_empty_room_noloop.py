@@ -26,6 +26,7 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
         self.next_visit = 0
         self.rand = None
         self.stage_one_period = stage_one_period
+        self.dist_thr = 2.0
 
         super().__init__(
             grid_size=size,
@@ -62,11 +63,23 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
 
         self.grid = Grid(self.width, self.height)  # to get position list
         self.grid.wall_rect(0, 0, self.width, self.height)
-        self.obj_pos = self._get_poses()
-        self.rand.shuffle(self.obj_pos)
-        sampled_pos = self.rand.sample(
-            self.obj_pos, self.num_stages + 1
-        )  # one for agent
+        obj_pos = self._get_poses()
+        self.rand.shuffle(obj_pos)
+        min_dist = 0.0
+        while min_dist < self.dist_thr:
+            sampled_pos = self.rand.sample(
+                obj_pos, self.num_stages + 1
+            )  # one for agent
+            sampled_pos_np = np.array(sampled_pos)
+            dist_mat = abs(
+                sampled_pos_np.reshape(1, self.num_stages + 1, 2)
+                - sampled_pos_np.reshape(self.num_stages + 1, 1, 2)
+            ).sum(-1)
+            dist_mat[
+                np.arange(self.num_stages + 1), np.arange(self.num_stages + 1),
+            ] = 100
+            min_dist = dist_mat.min()
+
         self.sampled_pos = sampled_pos[: self.num_stages]
         agent_pos = sampled_pos[-1]
         self.rand.shuffle(self.ball_colors)
@@ -125,11 +138,10 @@ class NStageEmptyEnvNoLoop(MiniGridEnv):
                 ):
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     self.next_visit += 1
+                    reward += 2  # to be distinguished from stage 1 reward (for logs)
                     if self.next_visit == self.num_stages:
-                        reward += 3.0  # +3 reward for complete a circle
+                        reward += 1.0  # +3 reward for complete a circle
                         done = True
-                    else:
-                        reward += 1
                 else:
                     reward += -1.0
                     done = True
