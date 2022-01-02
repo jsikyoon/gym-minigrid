@@ -17,6 +17,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         stage_one_period=15,
         stage_one=True,
         target_type="first",
+        query_first=False,
         max_steps=100,
     ):
         self.agent_start_pos = agent_start_pos
@@ -37,6 +38,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         self.target_type = target_type
         self.target_list = []
         self.dist_thr = 2.0
+        self.query_first = query_first
 
         super().__init__(
             grid_size=size,
@@ -67,12 +69,14 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         self.stay_time = 0
         # idx=0: any ball, idx > 0, the i-th ball indicated with idx
         if self.target_type == "first":
-            self.target_list = [0]
+            self.target_list = [1]
         elif self.target_type == "queried":
-            target_list = self.rand.sample(range(self.num_stages), 1)
+            target_list = self.rand.sample(range(1, self.num_stages + 1), 1)
             self.target_list = target_list
         else:
             raise ValueError("Invalid target type.")
+        if not self.query_first:
+            self.target_list = [0] + self.target_list
         self.next_visit = self.target_list[0]
         obs = MiniGridEnv.reset(self)
         obs.update(
@@ -147,6 +151,8 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 1.0
                     self.stage_idx += 1
+                    if self.stage_idx == self.num_stages and (not self.query_first):
+                        self.next_visit = self.target_list[1]
                     self._set_stage()
                     self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
@@ -163,12 +169,14 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                 self.stage_idx < self.num_stages
             ):
                 self.stage_idx += 1
+                if self.stage_idx == self.num_stages and (not self.query_first):
+                    self.next_visit = self.target_list[1]
                 self._set_stage()
                 self.stay_time = 0
 
         obs = self.gen_obs()
         obs.update(
-            {"target_idx": self.target_list[:1],}
+            {"target_idx": [self.next_visit],}
         )
         if self.step_count >= self.max_steps:
             done = True
