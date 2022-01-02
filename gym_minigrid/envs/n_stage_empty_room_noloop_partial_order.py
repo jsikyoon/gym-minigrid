@@ -156,9 +156,9 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                     self._set_stage()
                     self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
-                if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
-                    agent_pos[1] == self.sampled_pos[self.next_visit][1]
-                ):
+                if (agent_pos[0] == self.sampled_pos[self.next_visit - 1][0]) and (
+                    agent_pos[1] == self.sampled_pos[self.next_visit - 1][1]
+                ):  # target idx starts from 1
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 3.0  # to be distinguished from stage 1 reward (for logs)
                 else:
