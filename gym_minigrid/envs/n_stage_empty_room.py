@@ -10,10 +10,11 @@ class NStageEmptyEnv(MiniGridEnv):
 
     def __init__(
         self,
-        size=6,
+        size=7,
         num_stages=4,
         agent_start_pos=None,
         agent_start_dir=0,
+        stage_one_period=15,
         max_steps=100,
     ):
         self.agent_start_pos = agent_start_pos
@@ -24,6 +25,8 @@ class NStageEmptyEnv(MiniGridEnv):
         self.ball_colors = COLOR_NAMES[:num_stages]
         self.next_visit = 0
         self.rand = None
+        self.stage_one_period = stage_one_period
+        self.dist_thr = 2.0
 
         super().__init__(
             grid_size=size,
@@ -44,11 +47,17 @@ class NStageEmptyEnv(MiniGridEnv):
     def _reset_grid(self, reset_key=False):
         self.stage_idx = 0
         self.next_visit = 0
+        self.visited = []
+        self.stay_time = 0
+        self.agent_pos = self.agent_init_pos
+        self.agent_dir = self.agent_init_dir
         self._set_stage()
 
     def reset(self):
         self.stage_idx = 0
         self.next_visit = 0
+        self.stay_time = 0
+        self.visited = []
         obs = MiniGridEnv.reset(self)
         return obs
 
@@ -56,22 +65,34 @@ class NStageEmptyEnv(MiniGridEnv):
         if self.rand is None:
             self.rand = random.Random(self.seed)
 
-        self.grid = Grid(self.width, self.height)  # to get position list
+        self.grid = Grid(self.width, self.height)
         self.grid.wall_rect(0, 0, self.width, self.height)
-        self.obj_pos = self._get_poses()
-        self.rand.shuffle(self.obj_pos)
-        sampled_pos = self.rand.sample(
-            self.obj_pos, self.num_stages + 1
-        )  # one for agent
-        self.sampled_pos = sampled_pos[: self.num_stages]
-        agent_pos = sampled_pos[-1]
+
+        # Place the agent to the mid bottom, facing upward
+        self.agent_init_pos = (3, 5)
+        self.agent_init_dir = 3
+        self.agent_pos = self.agent_init_pos
+        self.agent_dir = self.agent_init_dir
+
+        obj_pos = self._get_poses()
+        self.rand.shuffle(obj_pos)
+        min_dist = 0.0
+        while min_dist < self.dist_thr:
+            sampled_pos = self.rand.sample(obj_pos, self.num_stages)
+            sampled_pos_np = np.array(sampled_pos + [self.agent_pos])
+            dist_mat = abs(
+                sampled_pos_np.reshape(1, self.num_stages + 1, 2)
+                - sampled_pos_np.reshape(self.num_stages + 1, 1, 2)
+            ).sum(-1)
+            dist_mat[
+                np.arange(self.num_stages + 1), np.arange(self.num_stages + 1),
+            ] = 100
+            min_dist = dist_mat.min()
+
+        self.sampled_pos = sampled_pos
         self.rand.shuffle(self.ball_colors)
         # begin first stage
         self._set_stage()
-
-        # Place the agent
-        self.agent_pos = agent_pos
-        self.agent_dir = self._rand_int(0, 4)
 
         self.mission = "get to the green goal square"
 
@@ -93,18 +114,23 @@ class NStageEmptyEnv(MiniGridEnv):
                 ball_color = self.ball_colors[i]
                 self.grid.set(*self.sampled_pos[i], CollectableBall(ball_color, 0))
 
+            self.agent_pos = self.agent_init_pos
+            self.agent_dir = self.agent_init_dir
+
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
-        reward = 0  # rewrite the reward logic
+        reward = 0.0  # rewrite the reward logic
         done = False
 
         current_cell = self.grid.get(*self.agent_pos)
         agent_pos = tuple(self.agent_pos)
+        self.stay_time += 1
         if current_cell:
             if current_cell.type == "ball" and (self.stage_idx != self.num_stages):
                 self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                 reward += 1.0
                 self.stage_idx += 1
+                self.stay_time = 0
                 self._set_stage()
             if current_cell.type == "ball" and (self.stage_idx == self.num_stages):
                 if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
@@ -112,12 +138,21 @@ class NStageEmptyEnv(MiniGridEnv):
                 ):
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     self.next_visit += 1
+                    if agent_pos not in self.visited:
+                        reward += 3.0  # +3 for every ball collected in correct order
+                        self.visited.append(agent_pos)
                     if self.next_visit == self.num_stages:
-                        reward += 3.0  # +3 reward for complete a circle
                         self._reset_grid()
                 else:
                     self.next_visit = 0
                     self._set_stage()
+        else:
+            if (self.stay_time >= self.stage_one_period) and (
+                self.stage_idx < self.num_stages
+            ):
+                self.stage_idx += 1
+                self._set_stage()
+                self.stay_time = 0
 
         obs = self.gen_obs()
         if self.step_count >= self.max_steps:

@@ -3,18 +3,18 @@ from gym_minigrid.register import register
 import random
 
 
-class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
+class NStageEmptyPartialEnv(MiniGridEnv):
     """
     N-stage empty grid environment, no obstacles, sparse reward
     """
 
     def __init__(
         self,
-        size=6,
+        size=7,
         num_stages=4,
         agent_start_pos=None,
         agent_start_dir=0,
-        stage_one_period=10,
+        stage_one_period=15,
         stage_one=True,
         target_type="first",
         max_steps=100,
@@ -32,7 +32,6 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
         """
         target_type:
           first: the object shown first in stage 1 is the target object in stage 2
-          first_two: the objects shown first two in order in stage 1 are the target objects in stage 2, need to find out in the same order
           quried: find out the queried object, indicated as index in order, in stage 2
         """
         self.target_type = target_type
@@ -57,7 +56,8 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
 
     def _reset_grid(self, reset_key=False):
         self.stage_idx = 0
-        self.next_visit = 0
+        self.next_visit = self.target_list[0]
+        self.stay_time = 0
         self._set_stage()
 
     def reset(self):
@@ -65,18 +65,15 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
             self.rand = random.Random(self.seed)
         self.stage_idx = 0
         self.stay_time = 0
-        self.frist_full_stage = True
         # idx=0: any ball, idx > 0, the i-th ball indicated with idx
         if self.target_type == "first":
-            self.target_list = [0, 1]
-        elif self.target_type == "first_two":
-            self.target_list = [0, 1, 2]
+            self.target_list = [0]
         elif self.target_type == "queried":
-            target_list = self.rand.sample(range(1, self.num_stages), 1)
-            self.target_list = [0] + target_list
-
+            target_list = self.rand.sample(range(self.num_stages), 1)
+            self.target_list = target_list
         else:
             raise ValueError("Invalid target type.")
+        self.next_visit = self.target_list[0]
         obs = MiniGridEnv.reset(self)
         obs.update(
             {"target_idx": self.target_list[:1],}
@@ -85,16 +82,22 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
 
     def _gen_grid(self, width, height):
 
-        self.grid = Grid(self.width, self.height)  # to get position list
+        self.grid = Grid(self.width, self.height)
         self.grid.wall_rect(0, 0, self.width, self.height)
+
+        # Place the agent to the mid bottom, facing upward
+        self.agent_init_pos = (3, 5)
+        self.agent_init_dir = 3
+        self.agent_pos = self.agent_init_pos
+        self.agent_dir = self.agent_init_dir
+
+        # place objects
         obj_pos = self._get_poses()
         self.rand.shuffle(obj_pos)
         min_dist = 0.0
         while min_dist < self.dist_thr:
-            sampled_pos = self.rand.sample(
-                obj_pos, self.num_stages + 1
-            )  # one for agent
-            sampled_pos_np = np.array(sampled_pos)
+            sampled_pos = self.rand.sample(obj_pos, self.num_stages)
+            sampled_pos_np = np.array(sampled_pos + [self.agent_pos])
             dist_mat = abs(
                 sampled_pos_np.reshape(1, self.num_stages + 1, 2)
                 - sampled_pos_np.reshape(self.num_stages + 1, 1, 2)
@@ -103,18 +106,10 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
                 np.arange(self.num_stages + 1), np.arange(self.num_stages + 1),
             ] = 100
             min_dist = dist_mat.min()
-        self.sampled_pos = sampled_pos[: self.num_stages]
-        agent_pos = sampled_pos[-1]
+        self.sampled_pos = sampled_pos
         self.rand.shuffle(self.ball_colors)
         # begin first stage
         self._set_stage()
-
-        # Place the agent
-        self.agent_pos = agent_pos
-        self.agent_dir = self._rand_int(0, 4)
-
-        self.agent_init_pos = agent_pos
-        self.agent_init_dir = self.agent_dir
 
         self.mission = "get to the green goal square"
 
@@ -135,14 +130,12 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
             for i in range(self.num_stages):
                 ball_color = self.ball_colors[i]
                 self.grid.set(*self.sampled_pos[i], CollectableBall(ball_color, 0))
-            if self.frist_full_stage:
-                self.frist_full_stage = False
-                self.agent_pos = self.agent_init_pos
-                self.agent_dir = self.agent_init_dir
+            self.agent_pos = self.agent_init_pos
+            self.agent_dir = self.agent_init_dir
 
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
-        reward = 0  # rewrite the reward logic
+        reward = 0.0  # rewrite the reward logic
         done = False
 
         current_cell = self.grid.get(*self.agent_pos)
@@ -154,36 +147,22 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 1.0
                     self.stage_idx += 1
-                    if self.stage_idx == self.num_stages:
-                        # transit into stage 2
-                        self.target_list = self.target_list[1:]
-                        self.next_visit = self.target_list[0]
                     self._set_stage()
                     self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
-                if (agent_pos[0] == self.sampled_pos[self.next_visit - 1][0]) and (
-                    agent_pos[1] == self.sampled_pos[self.next_visit - 1][1]
-                ):  # next_visit index starts from 1
+                if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
+                    agent_pos[1] == self.sampled_pos[self.next_visit][1]
+                ):
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
-                    self.target_list = self.target_list[1:]
-                    reward += 2  # to be distinguished from stage 1 reward (for logs)
-                    if len(self.target_list) == 0:
-                        reward += 1.0  # +3 reward for complete a circle
-                        done = True
-                    else:
-                        self.next_visit = self.target_list[0]
+                    reward += 3.0  # to be distinguished from stage 1 reward (for logs)
                 else:
                     reward += -1.0
-                    done = True
+                self._reset_grid()
         else:
             if (self.stay_time >= self.stage_one_period) and (
                 self.stage_idx < self.num_stages
             ):
                 self.stage_idx += 1
-                # transit into stage 2
-                if self.stage_idx == self.num_stages:
-                    self.target_list = self.target_list[1:]
-                    self.next_visit = self.target_list[0]
                 self._set_stage()
                 self.stay_time = 0
 
@@ -197,12 +176,12 @@ class NStageEmptyNoLoopPartialEnv(MiniGridEnv):
         return obs, reward, done, info
 
 
-class NStageEmptyNoLoopPartialS7(NStageEmptyNoLoopPartialEnv):
+class NStageEmptyPartialS7(NStageEmptyPartialEnv):
     def __init__(self, **kwargs):
         super().__init__(size=7, **kwargs)
 
 
 register(
-    id="MiniGrid-NStageEmptyNoLoopPartialS7-v0",
-    entry_point="gym_minigrid.envs:NStageEmptyNoLoopPartialS7",
+    id="MiniGrid-NStageEmptyPartialS7-v0",
+    entry_point="gym_minigrid.envs:NStageEmptyPartialS7",
 )
