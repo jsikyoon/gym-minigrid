@@ -161,9 +161,9 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                 ):  # target idx starts from 1
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 3.0  # to be distinguished from stage 1 reward (for logs)
+                    self._reset_grid()
                 else:
                     reward += -1.0
-                self._reset_grid()
         else:
             if (self.stay_time >= self.stage_one_period) and (
                 self.stage_idx < self.num_stages
