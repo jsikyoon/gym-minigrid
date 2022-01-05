@@ -60,6 +60,8 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         self.stage_idx = 0
         self.next_visit = self.target_list[0]
         self.stay_time = 0
+        self.agent_pos = self.agent_init_pos
+        self.agent_dir = self.agent_init_dir
         self._set_stage()
 
     def reset(self):
