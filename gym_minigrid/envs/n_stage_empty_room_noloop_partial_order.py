@@ -19,6 +19,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         target_type="first",
         query_first=False,
         max_steps=100,
+        no_loop=True,
     ):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
@@ -30,6 +31,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         self.rand = None
         self.stage_one_period = stage_one_period
         self.stage_one = stage_one  # whether or not include stage 1 in RL
+        self.no_loop = no_loop
         """
         target_type:
           first: the object shown first in stage 1 is the target object in stage 2
@@ -69,6 +71,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
             self.rand = random.Random(self.seed)
         self.stage_idx = 0
         self.stay_time = 0
+        self.round_one = True
         # idx=0: any ball, idx > 0, the i-th ball indicated with idx
         if self.target_type == "first":
             self.target_list = [1]
@@ -151,10 +154,12 @@ class NStageEmptyPartialEnv(MiniGridEnv):
             if current_cell.type == "ball" and (self.stage_idx < self.num_stages):
                 if self.stage_one:  # include stage 1 in RL
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
-                    reward += 1.0
+                    if self.round_one:
+                        reward += 1.0
                     self.stage_idx += 1
                     if self.stage_idx == self.num_stages and (not self.query_first):
                         self.next_visit = self.target_list[1]
+                        self.round_one = False
                     self._set_stage()
                     self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
@@ -163,9 +168,14 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                 ):  # target idx starts from 1
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 3.0  # to be distinguished from stage 1 reward (for logs)
-                    self._reset_grid()
+                    if self.no_loop:
+                        done = True
+                    else:
+                        self._reset_grid()
                 else:
                     reward += -1.0
+                    if self.no_loop:
+                        done = True
         else:
             if (self.stay_time >= self.stage_one_period) and (
                 self.stage_idx < self.num_stages
@@ -173,6 +183,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                 self.stage_idx += 1
                 if self.stage_idx == self.num_stages and (not self.query_first):
                     self.next_visit = self.target_list[1]
+                    self.round_one = False
                 self._set_stage()
                 self.stay_time = 0
 
