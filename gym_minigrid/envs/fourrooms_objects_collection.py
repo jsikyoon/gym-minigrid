@@ -31,6 +31,8 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         self.dist_thr = 2
         self.yellow_first = yellow_first
         self.yellow_colleted = 0
+        self.agent_goal_dist_thr = 20
+        self.goal_colors = ["red", "green"]
 
         super().__init__(grid_size=grid_size, max_steps=100)
 
@@ -89,20 +91,71 @@ class FourRoomsObjectsEnv(MiniGridEnv):
                     pos = (self._rand_int(xL + 1, xR), yB)
                     self.grid.set(*pos, None)
 
-        if self._goal_default_pos is not None:
-            goal = Goal()
-            self.put_obj(goal, *self._goal_default_pos)
-            goal.init_pos, goal.cur_pos = self._goal_default_pos
+        obj_pos = self._get_poses()
+        self.rand.shuffle(obj_pos)
+        # sample goal and agent
+        sampled_pos = self.rand.sample(obj_pos, 3)
+        sampled_pos_np = np.array(sampled_pos)
+        dist_mat = abs(
+            sampled_pos_np.reshape(1, 3, 2) - sampled_pos_np.reshape(3, 1, 2)
+        ).sum(-1)
+        dist_mat[np.arange(3), np.arange(3),] = 100
+
+        min_dist = dist_mat.min()
+        while min_dist <= self.agent_goal_dist_thr:
+            sampled_pos = self.rand.sample(obj_pos, 3)
+            sampled_pos_np = np.array(sampled_pos)
+            dist_mat = abs(
+                sampled_pos_np.reshape(1, 3, 2) - sampled_pos_np.reshape(3, 1, 2)
+            ).sum(-1)
+            dist_mat[np.arange(3), np.arange(3),] = 100
+            min_dist = dist_mat.min()
+
+        agent_pos = sampled_pos[0]
+        goal_clue_pos = list(agent_pos)
+        if agent_pos[0] <= 2:
+            agent_dir = 0
+        elif agent_pos[0] >= 19:
+            agent_dir = 2
+        elif agent_pos[1] <= 2:
+            agent_dir = 1
+        elif agent_pos[1] >= 19:
+            agent_dir = 3
         else:
-            self.place_obj(Goal())
+            agent_dir = self.rand.sample(range(4), 1)[0]
+
+        if agent_dir == 0:  # look right
+            goal_clue_pos[0] += 2
+        elif agent_dir == 1:  # look down
+            goal_clue_pos[1] += 2
+        elif agent_dir == 2:  # look left
+            goal_clue_pos[0] -= 2
+        elif agent_dir == 3:  # look up
+            goal_clue_pos[1] -= 2
+
+        self.agent_pos = agent_pos
+        self.agent_dir = agent_dir
+
+        true_goal_pos = sampled_pos[1]
+        false_goal_pos = sampled_pos[2]
+        true_color_idx = self.rand.sample(range(2), 1)[0]
+        false_color_idx = 1 - true_color_idx
+        goal_clue = Goal(color=self.goal_colors[true_color_idx])
+        goal_clue.set_name("goal_clue")
+        self.put_obj(goal_clue, *goal_clue_pos)
+        true_goal = Goal(color=self.goal_colors[true_color_idx])
+        true_goal.set_name("true_goal")
+        self.put_obj(true_goal, *true_goal_pos)
+        false_goal = Goal(color=self.goal_colors[false_color_idx])
+        false_goal.set_name("false_goal")
+        self.put_obj(false_goal, *false_goal_pos)
 
         self.mission = "Reach the goal"
 
-        self.obj_pos = self._get_poses()
-        self.rand.shuffle(self.obj_pos)
-        sampled_pos = self.rand.sample(
-            self.obj_pos, self.num_bad_obj + self.num_good_obj
-        )
+        # place distractors
+        obj_pos = self._get_poses()
+        self.rand.shuffle(obj_pos)
+        sampled_pos = self.rand.sample(obj_pos, self.num_bad_obj + self.num_good_obj)
         sampled_pos_np = np.array(sampled_pos)
         dist_mat = abs(
             sampled_pos_np.reshape(1, self.num_bad_obj + self.num_good_obj, 2)
@@ -116,7 +169,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
 
         while min_dist <= self.dist_thr:
             sampled_pos = self.rand.sample(
-                self.obj_pos, self.num_bad_obj + self.num_good_obj
+                obj_pos, self.num_bad_obj + self.num_good_obj
             )
             sampled_pos_np = np.array(sampled_pos)
             dist_mat = abs(
@@ -135,14 +188,6 @@ class FourRoomsObjectsEnv(MiniGridEnv):
             self.grid.set(*self.sampled_pos[i], CollectableBall(self.good_color, 0))
         for i in range(self.num_good_obj, self.num_bad_obj + self.num_good_obj):
             self.grid.set(*self.sampled_pos[i], CollectableBall(self.bad_color, 0))
-
-        # Randomize the player start position and orientation
-        if self._agent_default_pos is not None:
-            self.agent_pos = self._agent_default_pos
-            self.grid.set(*self._agent_default_pos, None)
-            self.agent_dir = self._rand_int(0, 4)  # assuming random start direction
-        else:
-            self.place_agent()
 
     def step(self, action):
         obs, reward, done, info = MiniGridEnv.step(self, action)
@@ -163,9 +208,18 @@ class FourRoomsObjectsEnv(MiniGridEnv):
                 if (not self.yellow_first) or (
                     self.yellow_colleted == self.num_good_obj
                 ):
-                    reward += 3.0
-                    self._reset_grid()
-                    self.place_agent()
+                    if current_cell.name == "goal_clue":
+                        self.grid.grid[
+                            agent_pos[1] * self.grid.width + agent_pos[0]
+                        ] = None
+                        reward += 1.0
+                    if current_cell.name == "true_goal":
+                        reward += 3.0
+                        self.place_agent()
+                    if current_cell.name == "false_goal":
+                        reward -= 1.0
+                        self.place_agent()
+                    # self._reset_grid()
 
         obs = self.gen_obs()
         if self.step_count >= self.max_steps:
