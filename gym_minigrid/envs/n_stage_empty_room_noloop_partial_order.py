@@ -72,11 +72,10 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         self.stage_idx = 0
         self.stay_time = 0
         self.round_one = True
-        # idx=0: any ball, idx > 0, the i-th ball indicated with idx
         if self.target_type == "first":
-            self.target_list = [1]
+            self.target_list = [0]
         elif self.target_type == "queried":
-            target_list = self.rand.sample(range(1, self.num_stages + 1), 1)
+            target_list = self.rand.sample(range(self.num_stages), 1)
             self.target_list = target_list
         else:
             raise ValueError("Invalid target type.")
@@ -85,7 +84,7 @@ class NStageEmptyPartialEnv(MiniGridEnv):
         self.next_visit = self.target_list[0]
         obs = MiniGridEnv.reset(self)
         obs.update(
-            {"target_idx": self.target_list[:1],}
+            {"target_idx": [0],}
         )
         return obs
 
@@ -163,8 +162,8 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                     self._set_stage()
                     self.stay_time = 0
             elif current_cell.type == "ball" and (self.stage_idx == self.num_stages):
-                if (agent_pos[0] == self.sampled_pos[self.next_visit - 1][0]) and (
-                    agent_pos[1] == self.sampled_pos[self.next_visit - 1][1]
+                if (agent_pos[0] == self.sampled_pos[self.next_visit][0]) and (
+                    agent_pos[1] == self.sampled_pos[self.next_visit][1]
                 ):  # target idx starts from 1
                     self.grid.grid[agent_pos[1] * self.grid.width + agent_pos[0]] = None
                     reward += 3.0  # to be distinguished from stage 1 reward (for logs)
@@ -188,9 +187,16 @@ class NStageEmptyPartialEnv(MiniGridEnv):
                 self.stay_time = 0
 
         obs = self.gen_obs()
-        obs.update(
-            {"target_idx": [self.next_visit],}
-        )
+        if self.stage_idx != self.num_stages:
+            obs.update(
+                {
+                    "target_idx": [self.stage_idx],
+                }  # to be aligned with target_idx, index starting from 1
+            )
+        else:
+            obs.update(
+                {"target_idx": self.target_list[1:],}
+            )
         if self.step_count >= self.max_steps:
             done = True
 
