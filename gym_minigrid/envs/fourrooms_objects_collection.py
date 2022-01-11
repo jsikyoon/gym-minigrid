@@ -20,6 +20,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         yellow_first=False,
         agent_pos=None,
         goal_pos=None,
+        max_step=100,
     ):
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
@@ -34,7 +35,7 @@ class FourRoomsObjectsEnv(MiniGridEnv):
         self.agent_goal_dist_thr = 20
         self.goal_colors = ["red", "green"]
 
-        super().__init__(grid_size=grid_size, max_steps=100)
+        super().__init__(grid_size=grid_size, max_steps=max_step)
 
     def _get_poses(self):
         total_coords = []
