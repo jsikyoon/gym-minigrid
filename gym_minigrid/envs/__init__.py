@@ -27,3 +27,4 @@ from gym_minigrid.envs.ordermemory import *
 from gym_minigrid.envs.ordermemorylarge import *
 from gym_minigrid.envs.imaze import *
 from gym_minigrid.envs.threestages import *
+from gym_minigrid.envs.multistages import *
