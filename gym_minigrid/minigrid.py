@@ -273,11 +273,24 @@ class Door(WorldObj):
             fill_coords(img, point_in_circle(cx=0.75, cy=0.50, r=0.08), c)
 
 class Key(WorldObj):
-    def __init__(self, color='blue'):
+    def __init__(self, color='blue', pos_fruit=False, neg_fruit=False):
         super(Key, self).__init__('key', color)
 
+        self.pos_fruit = pos_fruit
+        self.neg_fruit = neg_fruit
+
     def can_pickup(self):
-        return True
+        if self.pos_fruit or self.neg_fruit:
+            return False
+        else:
+            return True
+
+    def can_overlap(self):
+        if self.pos_fruit or self.neg_fruit:
+            return True
+        else:
+            return False
+
 
     def render(self, img):
         c = COLORS[self.color]
@@ -316,12 +329,24 @@ class Ball(WorldObj):
         fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
 
 class Box(WorldObj):
-    def __init__(self, color, contains=None):
+    def __init__(self, color, contains=None, pos_fruit=False, neg_fruit=False):
         super(Box, self).__init__('box', color)
         self.contains = contains
 
+        self.pos_fruit = pos_fruit
+        self.neg_fruit = neg_fruit
+
     def can_pickup(self):
-        return True
+        if self.pos_fruit or self.neg_fruit:
+            return False
+        else:
+            return True
+
+    def can_overlap(self):
+        if self.pos_fruit or self.neg_fruit:
+            return True
+        else:
+            return False
 
     def render(self, img):
         c = COLORS[self.color]
@@ -1140,7 +1165,7 @@ class MiniGridEnv(gym.Env):
             if fwd_cell == None or fwd_cell.can_overlap():
                 self.agent_pos = fwd_pos
             if fwd_cell != None:
-                if fwd_cell.type == 'ball':
+                if fwd_cell.type in ['ball', 'key', 'box']:
                     if fwd_cell.pos_fruit == True:
                         self.grid.unset(*fwd_pos)
                         #reward = self._reward()
