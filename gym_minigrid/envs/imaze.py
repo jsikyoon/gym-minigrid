@@ -152,7 +152,7 @@ register(
 
 class IMazeS41(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=41, max_steps=50)
+        super().__init__(seed=seed, size=41, max_steps=500)
 register(
     id='MiniGrid-IMazeS41-v0',
     entry_point='gym_minigrid.envs:IMazeS41',
@@ -160,7 +160,7 @@ register(
 
 class IMazeS51(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=51, max_steps=60)
+        super().__init__(seed=seed, size=51, max_steps=600)
 register(
     id='MiniGrid-IMazeS51-v0',
     entry_point='gym_minigrid.envs:IMazeS51',
@@ -168,7 +168,7 @@ register(
 
 class IMazeS61(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=61, max_steps=70)
+        super().__init__(seed=seed, size=61, max_steps=700)
 register(
     id='MiniGrid-IMazeS61-v0',
     entry_point='gym_minigrid.envs:IMazeS61',
@@ -176,7 +176,7 @@ register(
 
 class IMazeS71(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=71, max_steps=80)
+        super().__init__(seed=seed, size=71, max_steps=800)
 register(
     id='MiniGrid-IMazeS71-v0',
     entry_point='gym_minigrid.envs:IMazeS71',
@@ -184,7 +184,7 @@ register(
 
 class IMazeS81(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=81, max_steps=90)
+        super().__init__(seed=seed, size=81, max_steps=900)
 register(
     id='MiniGrid-IMazeS81-v0',
     entry_point='gym_minigrid.envs:IMazeS81',
@@ -192,10 +192,26 @@ register(
 
 class IMazeS91(IMazeEnv):
     def __init__(self, seed=None):
-        super().__init__(seed=seed, size=91, max_steps=100)
+        super().__init__(seed=seed, size=91, max_steps=1000)
 register(
     id='MiniGrid-IMazeS91-v0',
     entry_point='gym_minigrid.envs:IMazeS91',
+)
+
+class IMazeS101(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=101, max_steps=1000)
+register(
+    id='MiniGrid-IMazeS101-v0',
+    entry_point='gym_minigrid.envs:IMazeS101',
+)
+
+class IMazeS121(IMazeEnv):
+    def __init__(self, seed=None):
+        super().__init__(seed=seed, size=121, max_steps=1000)
+register(
+    id='MiniGrid-IMazeS121-v0',
+    entry_point='gym_minigrid.envs:IMazeS121',
 )
 
 
