@@ -73,7 +73,7 @@ class OddOneOutEnv(MiniGridEnv):
         for _obj in objs[1:]:
             self.place_obj(getattr(minigrid, _obj[1])(_obj[0], neg_fruit=True))
 
-        self._target_obj = [_objs[0], _objs[1]]
+        self._target_obj = [objs[0], objs[1]]
         self.mission = 'choice the object that has the unique property'
 
     def step(self, action):
@@ -87,6 +87,14 @@ class OddOneOutEnv(MiniGridEnv):
 
         info.update({'target_obj': self._target_obj})
         return obs, reward, done, info
+
+class OddOneOutS6N4(OddOneOutEnv):
+    def __init__(self, num_objects=4, seed=None):
+        super().__init__(seed=seed, size=6, num_objects=num_objects)
+register(
+    id='MiniGrid-OddOneOutS6N4-v0',
+    entry_point='gym_minigrid.envs:OddOneOutS6N4',
+)
 
 class OddOneOutS8N4(OddOneOutEnv):
     def __init__(self, num_objects=4, seed=None):
