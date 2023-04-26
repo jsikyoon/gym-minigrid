@@ -1,5 +1,7 @@
 # Minimalistic Gridworld Environment (MiniGrid)
 
+This is backup version of my master branch.
+
 [![Build Status](https://travis-ci.org/maximecb/gym-minigrid.svg?branch=master)](https://travis-ci.org/maximecb/gym-minigrid)
 
 There are other gridworld Gym environments out there, but this one is
