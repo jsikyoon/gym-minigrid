@@ -76,6 +76,9 @@ class Grid:
         assert 0 <= j < self.height
         assert self.grid is not None
         return self.grid[j * self.width + i]
+    
+    def remove(self, i: int, j: int):
+        self.grid[j * self.width + i] = None
 
     def horz_wall(
         self,

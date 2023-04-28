@@ -34,6 +34,9 @@ OBJECT_TO_IDX = {
     "goal": 8,
     "lava": 9,
     "agent": 10,
+    "vm_fruit": 11, # used in disctractor grid
+    "vm_goal": 12, # used for Visual Match
+    "vm_wronggoal": 13, # used for Visual Match
 }
 
 IDX_TO_OBJECT = dict(zip(OBJECT_TO_IDX.values(), OBJECT_TO_IDX.keys()))

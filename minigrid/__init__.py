@@ -21,6 +21,14 @@ except Exception:  # nosec
 
 
 def register_minigrid_envs():
+    # VisualMatch
+    # ----------------------------------------
+    register(
+        id="MiniGrid-PassiveVisualMatch-v0",
+        entry_point="minigrid.envs:VisualMatchEnv",
+        kwargs={"active": False},
+    )
+    
     # BlockedUnlockPickup
     # ----------------------------------------
 

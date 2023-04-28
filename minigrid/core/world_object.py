@@ -97,6 +97,12 @@ class WorldObj:
             v = Goal()
         elif obj_type == "lava":
             v = Lava()
+        elif obj_type == "vm_fruit":
+            v = VM_Fruit(color)
+        elif obj_type == "vm_goal":
+            v = VM_Goal(color)
+        elif obj_type == "vm_wronggoal":
+            v = VM_WrongGoal(color)
         else:
             assert False, "unknown object type in decode '%s'" % obj_type
 
@@ -105,6 +111,39 @@ class WorldObj:
     def render(self, r: np.ndarray) -> np.ndarray:
         """Draw this object with the given renderer"""
         raise NotImplementedError
+
+
+class VM_Fruit(WorldObj):
+    def __init__(self, color):
+        super().__init__("vm_fruit", color)
+
+    def can_overlap(self):
+        return True
+
+    def render(self, img):
+        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+
+
+class VM_Goal(WorldObj):
+    def __init__(self, color):
+        super().__init__("vm_goal", color)
+
+    def can_overlap(self):
+        return True
+
+    def render(self, img):
+        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+
+
+class VM_WrongGoal(WorldObj):
+    def __init__(self, color):
+        super().__init__("vm_wronggoal", color)
+
+    def can_overlap(self):
+        return True
+
+    def render(self, img):
+        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
 
 
 class Goal(WorldObj):
