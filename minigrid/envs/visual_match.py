@@ -7,8 +7,8 @@ from minigrid.minigrid_env import MiniGridEnv
 
 DEFAULT_MAX_FRAMES_PER_PHASE = {
     "explore": 1,
-    "distractor": 1,
-    "reward": 15,
+    "distractor": 4,
+    "reward": 16,
 }
 class VisualMatchEnv(MiniGridEnv):
     """
@@ -57,7 +57,8 @@ class VisualMatchEnv(MiniGridEnv):
         self.grid.wall_rect(0, 0, width, height)
 
         # Place objects
-        self.goal_color = self._rand_elem(['green', 'blue', 'red'])
+        #self.goal_color = self._rand_elem(['green', 'blue', 'red'])
+        self.goal_color = self._rand_elem(['green', 'blue'])
         self.grid.set(width//2, height//2, VM_Goal(self.goal_color, can_overlap=False))
         
         ## Place a goal square in the bottom-right corner
