@@ -550,12 +550,12 @@ class MiniGridEnv(gym.Env):
             if fwd_cell is not None and fwd_cell.type == "vm_fruit":
                 reward = 0.1
                 self.grid.remove(*fwd_pos)
-            if fwd_cell is not None and fwd_cell.type == "vm_goal":
+            if fwd_cell is not None and fwd_cell.type == "vm_goal" and fwd_cell.can_overlap():
                 terminated = True
-                reward = 100.0
-            if fwd_cell is not None and fwd_cell.type == "vm_wronggoal":
-                terminated = True
-                reward = 1.0 # to encourage the agent to collect any objects
+                if fwd_cell.is_real_goal():
+                    reward = 100.0
+                else:
+                    reward = 1.0 # to encourage the agent to collect any objects
 
         # Pick up an object
         elif action == self.actions.pickup:
@@ -591,6 +591,9 @@ class MiniGridEnv(gym.Env):
             self.render()
 
         obs = self.gen_obs()
+        
+        print(obs["image"][:,:,0])
+        print(obs["image"][:,:,1])
 
         return obs, reward, terminated, truncated, {}
 

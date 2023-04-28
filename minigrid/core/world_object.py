@@ -101,8 +101,6 @@ class WorldObj:
             v = VM_Fruit(color)
         elif obj_type == "vm_goal":
             v = VM_Goal(color)
-        elif obj_type == "vm_wronggoal":
-            v = VM_WrongGoal(color)
         else:
             assert False, "unknown object type in decode '%s'" % obj_type
 
@@ -125,22 +123,16 @@ class VM_Fruit(WorldObj):
 
 
 class VM_Goal(WorldObj):
-    def __init__(self, color):
+    def __init__(self, color, real_goal=False, can_overlap=True):
         super().__init__("vm_goal", color)
+        self._real_goal = real_goal
+        self._can_overlap = can_overlap
 
     def can_overlap(self):
-        return True
-
-    def render(self, img):
-        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
-
-
-class VM_WrongGoal(WorldObj):
-    def __init__(self, color):
-        super().__init__("vm_wronggoal", color)
-
-    def can_overlap(self):
-        return True
+        return self._can_overlap
+    
+    def is_real_goal(self):
+        return self._real_goal
 
     def render(self, img):
         fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])

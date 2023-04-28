@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from minigrid.core.grid import Grid
 from minigrid.core.mission import MissionSpace
-from minigrid.core.world_object import VM_Fruit, VM_Goal, VM_WrongGoal, Ball
+from minigrid.core.world_object import VM_Fruit, VM_Goal, Ball
 from minigrid.minigrid_env import MiniGridEnv
 
 DEFAULT_MAX_FRAMES_PER_PHASE = {
@@ -58,7 +58,7 @@ class VisualMatchEnv(MiniGridEnv):
 
         # Place objects
         self.goal_color = self._rand_elem(['green', 'blue', 'red'])
-        self.grid.set(width//2, height//2, Ball(self.goal_color))
+        self.grid.set(width//2, height//2, VM_Goal(self.goal_color, can_overlap=False))
         
         ## Place a goal square in the bottom-right corner
         #self.put_obj(Goal(), width - 2, height - 2)
@@ -110,9 +110,9 @@ class VisualMatchEnv(MiniGridEnv):
         for _obj_info in objects_info:
             color, pos = _obj_info
             if color == self.goal_color:
-                self.grid.set(pos[0], pos[1], VM_Goal(color)) # goal ball
+                self.grid.set(pos[0], pos[1], VM_Goal(color, real_goal=True, can_overlap=True)) # goal ball
             else:
-                self.grid.set(pos[0], pos[1], VM_WrongGoal(color)) # distractor ball
+                self.grid.set(pos[0], pos[1], VM_Goal(color, real_goal=False, can_overlap=True)) # distractor ball
         
         ## Place a goal square in the bottom-right corner
         #self.put_obj(Goal(), width - 2, height - 2)
