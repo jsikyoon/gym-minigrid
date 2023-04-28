@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from minigrid.core.grid import Grid
 from minigrid.core.mission import MissionSpace
-from minigrid.core.world_object import VM_Fruit, VM_Goal, Ball
+from minigrid.core.world_object import VM_Fruit, VM_Goal
 from minigrid.minigrid_env import MiniGridEnv
 
 DEFAULT_MAX_FRAMES_PER_PHASE = {
-    "explore": 5,
-    "distractor": 10,
+    "explore": 1,
+    "distractor": 1,
     "reward": 15,
 }
 class VisualMatchEnv(MiniGridEnv):
@@ -103,9 +103,9 @@ class VisualMatchEnv(MiniGridEnv):
 
         # Place objects
         objects_info = [
-            ['green', [width//2, 1]],
+            ['green', [width//2, height//2-1]],
             ['blue', [width//2, height//2]],
-            ['red', [width//2, height-2]],
+            ['red', [width//2, height//2+1]],
         ]
         for _obj_info in objects_info:
             color, pos = _obj_info
