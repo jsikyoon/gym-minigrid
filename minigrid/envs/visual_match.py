@@ -5,10 +5,13 @@ from minigrid.core.mission import MissionSpace
 from minigrid.core.world_object import VM_Fruit, VM_Goal
 from minigrid.minigrid_env import MiniGridEnv
 
+from gymnasium import spaces
+
 DEFAULT_MAX_FRAMES_PER_PHASE = {
-    "explore": 1,
-    "distractor": 4,
-    "reward": 16,
+    "explore":      4,
+    #"distractor":  20,
+    "distractor":  80,
+    "reward":      16,
 }
 class VisualMatchEnv(MiniGridEnv):
     """
@@ -32,7 +35,7 @@ class VisualMatchEnv(MiniGridEnv):
         #if max_steps is None:
         #    max_steps = 4 * size**2
         max_steps = DEFAULT_MAX_FRAMES_PER_PHASE['explore'] + DEFAULT_MAX_FRAMES_PER_PHASE['distractor'] + DEFAULT_MAX_FRAMES_PER_PHASE['reward']
-            
+
         self._size = size # use for reward phase
 
         super().__init__(
@@ -42,6 +45,12 @@ class VisualMatchEnv(MiniGridEnv):
             see_through_walls=True,
             max_steps=max_steps,
             **kwargs,
+        )
+        self.observation_space["room"] = spaces.Box(
+            low=0,
+            high=2,
+            shape=(1,),
+            dtype="uint8",
         )
 
     @staticmethod
@@ -60,7 +69,7 @@ class VisualMatchEnv(MiniGridEnv):
         #self.goal_color = self._rand_elem(['green', 'blue', 'red'])
         self.goal_color = self._rand_elem(['green', 'blue'])
         self.grid.set(width//2, height//2, VM_Goal(self.goal_color, can_overlap=False))
-        
+
         ## Place a goal square in the bottom-right corner
         #self.put_obj(Goal(), width - 2, height - 2)
 
@@ -73,7 +82,7 @@ class VisualMatchEnv(MiniGridEnv):
 
         self._phase = "explore"
         self.mission = "remember the ball color"
-        
+
     def _gen_disctractor_grid(self):
 
         self.width = self.height = 30
@@ -84,16 +93,16 @@ class VisualMatchEnv(MiniGridEnv):
         self.grid.horz_wall(0, self.height-1)
         self.grid.vert_wall(0, 0)
         self.grid.vert_wall(self.width - 1, 0)
-        
+
         self.place_agent()
-        
+
         for _ in range(30):
             object = VM_Fruit('yellow')
             self.place_obj(object)
 
         self._phase = "distractor"
         self.mission = "collect yellow balls as many as possible"
-        
+
     def _gen_reward_grid(self):
         # Create an empty grid
         width = height = self._size
@@ -114,7 +123,7 @@ class VisualMatchEnv(MiniGridEnv):
                 self.grid.set(pos[0], pos[1], VM_Goal(color, real_goal=True, can_overlap=True)) # goal ball
             else:
                 self.grid.set(pos[0], pos[1], VM_Goal(color, real_goal=False, can_overlap=True)) # distractor ball
-        
+
         ## Place a goal square in the bottom-right corner
         #self.put_obj(Goal(), width - 2, height - 2)
 
@@ -137,4 +146,17 @@ class VisualMatchEnv(MiniGridEnv):
             self._gen_reward_grid()
         obs = self.gen_obs()
 
-        return obs, reward, terminated, truncated, info       
+        if self._phase == "explore":
+            room = 1
+        elif self._phase == "distractor":
+            room = 2
+        elif self._phase == "reward":
+            room = 3
+        obs['room'] = room
+
+        return obs, reward, terminated, truncated, info
+
+    def reset(self, seed=None):
+        obs, info = super().reset(seed=seed)
+        obs['room'] = 1
+        return obs, info
